@@ -1,0 +1,24 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start DnD Tool",
+      "type": "shell",
+      "command": "${workspaceFolder}\\node_modules\\electron\\dist\\electron.exe",
+      "args": ["${workspaceFolder}"],
+      "options": {
+        "env": {
+          "ELECTRON_RUN_AS_NODE": ""
+        }
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    }
+  ]
+}

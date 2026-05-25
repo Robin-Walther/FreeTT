@@ -1,0 +1,48 @@
+{
+    "name": "freett",
+    "version": "1.0.0",
+    "description": "FreeTT – Free Virtual Tabletop with DM and Player screens",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "build": "set CSC_IDENTITY_AUTO_DISCOVERY=false && electron-builder --win --x64",
+        "build:mac": "CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac"
+    },
+    "build": {
+        "appId": "com.freett.app",
+        "productName": "FreeTT",
+        "directories": {
+            "output": "dist"
+        },
+        "files": [
+            "**/*",
+            "!node_modules/.cache",
+            "!dist/**",
+            "!.claude/**",
+            "!.vscode/**",
+            "!start.bat",
+            "!start.ps1",
+            "!start.sh"
+        ],
+        "win": {
+            "target": "portable"
+        },
+        "mac": {
+            "target": [
+                { "target": "dmg", "arch": ["x64", "arm64"] }
+            ],
+            "category": "public.app-category.games"
+        }
+    },
+    "keywords": ["dnd", "tabletop", "rpg", "electron", "vtt"],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "localtunnel": "^2.0.2",
+        "ws": "^8.18.0"
+    },
+    "devDependencies": {
+        "electron": "^33.0.0",
+        "electron-builder": "^26.8.1"
+    }
+}
