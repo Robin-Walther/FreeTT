@@ -24,14 +24,17 @@
             "!start.ps1",
             "!start.sh"
         ],
+        "icon": "assets/icon.png",
         "win": {
-            "target": "portable"
+            "target": "portable",
+            "icon": "assets/icon.png"
         },
         "mac": {
             "target": [
                 { "target": "dmg", "arch": ["x64", "arm64"] }
             ],
-            "category": "public.app-category.games"
+            "category": "public.app-category.games",
+            "icon": "assets/icon.png"
         }
     },
     "keywords": ["dnd", "tabletop", "rpg", "electron", "vtt"],

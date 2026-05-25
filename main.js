@@ -23,6 +23,7 @@ function createWindows() {
     width: 1280,
     height: 800,
     title: 'FreeTT – DM Screen',
+    icon: path.join(__dirname, 'assets', 'icon.png'),
     backgroundColor: '#1a1a2e',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -45,6 +46,7 @@ function createWindows() {
     width: 1280,
     height: 800,
     title: 'FreeTT – Player Screen',
+    icon: path.join(__dirname, 'assets', 'icon.png'),
     backgroundColor: '#0d0d0d',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -104,6 +106,7 @@ ipcMain.on('reopen-player-window', () => {
     width: 1280,
     height: 800,
     title: 'FreeTT – Player Screen',
+    icon: path.join(__dirname, 'assets', 'icon.png'),
     backgroundColor: '#0d0d0d',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
