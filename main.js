@@ -61,6 +61,14 @@ function createWindows() {
   dmWindow.on('closed', () => {
     dmWindow = null;
     if (playerWindow) playerWindow.close();
+    for (const [, session] of remoteSessions) {
+      for (const [client] of session.clients) {
+        try { client.close(4001, 'Session ended'); } catch {}
+      }
+    }
+    remoteSessions.clear();
+    if (currentTunnel) { try { currentTunnel.close(); } catch {} currentTunnel = null; }
+    mediaRegistry.clear();
   });
 
   playerWindow.on('closed', () => {

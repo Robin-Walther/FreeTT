@@ -47,6 +47,7 @@ const state = {
 
 let currentVideoEl  = null;
 let videoAnimFrame  = null;
+let currentVolume   = 1;
 
 function stopVideoLoop() {
   if (videoAnimFrame !== null) { cancelAnimationFrame(videoAnimFrame); videoAnimFrame = null; }
@@ -449,6 +450,10 @@ function handleMessage(msg) {
         addPingCircle(msg.imgX, msg.imgY, msg.color);
       }
       break;
+    case 'volume':
+      currentVolume = msg.muted ? 0 : (msg.value ?? 1);
+      if (currentVideoEl) currentVideoEl.volume = currentVolume;
+      break;
     case 'pins':
       pins = msg.pins || [];
       renderAll();
@@ -488,15 +493,20 @@ function loadVideoMap(url) {
   state.image = null;
 
   const video = document.createElement('video');
-  video.loop  = true;
-  video.muted = true;
-  video.src   = url;
+  video.loop   = true;
+  video.muted  = false;
+  video.volume = currentVolume;
+  video.src    = url;
 
   video.addEventListener('loadedmetadata', () => {
     currentVideoEl = video;
     fitImageToView(video);
     waitingScreen.style.display = 'none';
-    video.play().catch(() => {});
+    video.play().catch(() => {
+      // Browser blocked unmuted autoplay – retry muted
+      video.muted = true;
+      video.play().catch(() => {});
+    });
     startVideoLoop();
   }, { once: true });
 

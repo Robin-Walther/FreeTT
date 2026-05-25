@@ -2001,6 +2001,21 @@ function rebuildPlayersUI() {
     removeBtn.addEventListener('click', () => removeGlobalPlayer(gp.id));
 
     item.append(tokenSlot, nameSpan);
+    const slot = activeSlot();
+    if (slot && !slot.combatants.find(c => c.globalPlayerId === gp.id)) {
+      const readdBtn = document.createElement('button');
+      readdBtn.className = 'btn btn-secondary player-readd-btn';
+      readdBtn.textContent = '+';
+      readdBtn.title = t('player.readd.title');
+      readdBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        addGlobalPlayerToSlot(gp, slot);
+        rebuildPlayersUI();
+        rebuildCombatUI();
+        sendTokensSync();
+      });
+      item.appendChild(readdBtn);
+    }
     if (syncMode === 'remote' && currentSessionId && gp.uuid) {
       const linkBtn = document.createElement('button');
       linkBtn.className = 'btn btn-secondary player-link-btn';

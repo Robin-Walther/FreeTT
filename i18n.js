@@ -113,6 +113,7 @@ const TRANSLATIONS = {
     // Player links sidebar
     'player.copy_link.title': 'Copy player link',
     'player.token.title': 'Change token image',
+    'player.readd.title': 'Add back to current scene',
     'player.remove.title': 'Remove player',
     // Ruler
     'ruler.fields_ft': (fields, feet) => `${fields} Fields (${feet} ft)`,
@@ -265,6 +266,7 @@ const TRANSLATIONS = {
     'btn.remove_token': 'Von Karte entfernen',
     'player.copy_link.title': 'Spieler-Link kopieren',
     'player.token.title': 'Token-Bild ändern',
+    'player.readd.title': 'Zur aktuellen Szene hinzufügen',
     'player.remove.title': 'Spieler entfernen',
     'ruler.fields_ft': (fields, feet) => `${fields} Felder (${feet} ft)`,
     'ruler.px': px => `${px} px`,
@@ -412,6 +414,7 @@ const TRANSLATIONS = {
     'btn.remove_token': 'Retirer de la carte',
     'player.copy_link.title': 'Copier le lien joueur',
     'player.token.title': 'Changer l\'image du jeton',
+    'player.readd.title': 'Ajouter à la scène actuelle',
     'player.remove.title': 'Supprimer le joueur',
     'ruler.fields_ft': (fields, feet) => `${fields} cases (${feet} ft)`,
     'ruler.px': px => `${px} px`,
@@ -559,6 +562,7 @@ const TRANSLATIONS = {
     'btn.remove_token': 'Rimuovi dalla mappa',
     'player.copy_link.title': 'Copia link giocatore',
     'player.token.title': 'Cambia immagine pedina',
+    'player.readd.title': 'Aggiungi alla scena corrente',
     'player.remove.title': 'Rimuovi giocatore',
     'ruler.fields_ft': (fields, feet) => `${fields} caselle (${feet} ft)`,
     'ruler.px': px => `${px} px`,
