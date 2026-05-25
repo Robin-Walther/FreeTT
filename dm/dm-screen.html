@@ -41,7 +41,14 @@
       <button id="btn-save-session" class="btn btn-secondary" data-i18n-title="btn.save.title" title="Session speichern" data-i18n="btn.save">💾 Speichern</button>
       <button id="btn-load-session" class="btn btn-secondary" data-i18n-title="btn.load.title" title="Session laden" data-i18n="btn.load">📂 Laden</button>
       <div class="separator"></div>
-      <button id="btn-remote-mode" class="btn btn-secondary remote-mode-btn" data-i18n-title="btn.remote.title" title="Remote Session verwalten" data-i18n="btn.remote">&#x1F310; Remote</button>
+      <div class="remote-toggle-row">
+        <label class="toggle-switch" title="Remote-Modus ein/aus">
+          <input type="checkbox" id="remote-mode-toggle" />
+          <span class="toggle-knob"></span>
+        </label>
+        <span class="label-sm remote-toggle-label">Remote</span>
+        <button id="btn-remote-info" class="btn btn-secondary btn-icon remote-info-btn" style="display:none" title="Verbindungsdetails">&#x1F517;</button>
+      </div>
       <div class="separator"></div>
       <select id="lang-select" class="lang-select" title="Language / Sprache">
         <option value="de">DE</option>

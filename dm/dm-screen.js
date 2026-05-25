@@ -2082,20 +2082,25 @@ function updateRemotePanel() {
   const active   = document.getElementById('remote-panel-active');
   const codeEl   = document.getElementById('remote-session-code');
   const startBtn = document.getElementById('btn-start-remote');
-  const modeBtn  = document.getElementById('btn-remote-mode');
+  const toggle   = document.getElementById('remote-mode-toggle');
+  const infoBtn  = document.getElementById('btn-remote-info');
 
   if (syncMode === 'remote' && currentSessionId) {
     inactive.style.display = 'none';
     active.style.display   = '';
     codeEl.textContent     = currentSessionId;
     rebuildRemotePlayerLinks();
-    modeBtn.classList.add('remote-mode-btn-active');
+    toggle.checked         = true;
+    toggle.disabled        = false;
+    infoBtn.style.display  = '';
   } else {
     inactive.style.display = '';
     active.style.display   = 'none';
     startBtn.disabled      = false;
     startBtn.textContent   = t('btn.start_remote');
-    modeBtn.classList.remove('remote-mode-btn-active');
+    toggle.checked         = false;
+    toggle.disabled        = false;
+    infoBtn.style.display  = 'none';
   }
 
   rebuildPlayersUI();
@@ -2175,6 +2180,7 @@ async function startRemoteSession() {
     alert(t('remote.start_error') + e.message);
     btn.disabled    = false;
     btn.textContent = t('btn.start_remote');
+    updateRemotePanel(); // reset toggle on failure
   }
 }
 
@@ -2219,8 +2225,26 @@ window.electronAPI.onRemoteTokenMoved(({ tokenId, tokenX, tokenY }) => {
   }
 });
 
-// Remote panel toggle button
-document.getElementById('btn-remote-mode').addEventListener('click', () => {
+// Remote mode toggle slider
+document.getElementById('remote-mode-toggle').addEventListener('change', async (e) => {
+  const toggle = e.target;
+  if (toggle.checked) {
+    toggle.disabled = true;
+    await startRemoteSession();
+    if (syncMode === 'remote') {
+      window.electronAPI.closePlayerWindow();
+    }
+  } else {
+    if (syncMode === 'remote') {
+      await endRemoteSession();
+      window.electronAPI.reopenPlayerWindow();
+    }
+    document.getElementById('remote-panel').style.display = 'none';
+  }
+});
+
+// Info button: open/close connection details panel (only visible in remote mode)
+document.getElementById('btn-remote-info').addEventListener('click', () => {
   const panel   = document.getElementById('remote-panel');
   const showing = panel.style.display !== 'none';
   panel.style.display = showing ? 'none' : '';
@@ -2231,11 +2255,16 @@ document.getElementById('remote-panel-close').addEventListener('click', () => {
   document.getElementById('remote-panel').style.display = 'none';
 });
 
-document.getElementById('btn-start-remote').addEventListener('click', startRemoteSession);
+document.getElementById('btn-start-remote').addEventListener('click', async () => {
+  await startRemoteSession();
+  if (syncMode === 'remote') window.electronAPI.closePlayerWindow();
+});
 
 document.getElementById('btn-end-remote').addEventListener('click', async () => {
   if (confirm(t('remote.end.confirm'))) {
     await endRemoteSession();
+    window.electronAPI.reopenPlayerWindow();
+    document.getElementById('remote-panel').style.display = 'none';
   }
 });
 

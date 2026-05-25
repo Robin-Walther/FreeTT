@@ -597,7 +597,7 @@ function onPointerDown(sx, sy, shiftKey, ctrlKey) {
     }
     return;
   }
-  if (!MY_ID || !state.image) return;
+  if (!MY_ID || (!state.image && !currentVideoEl)) return;
   const t = getOwnTokenAtScreen(sx, sy);
   if (!t) return;
   dragToken = t;
@@ -659,6 +659,7 @@ function onDocMouseUp() {
 }
 
 canvasEvents.addEventListener('mousedown', e => {
+  e.preventDefault();
   onPointerDown(e.offsetX, e.offsetY, e.shiftKey, false);
   if (dragToken) {
     document.addEventListener('mousemove', onDocMouseMove);

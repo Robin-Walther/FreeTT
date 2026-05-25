@@ -63,6 +63,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Player: listen for grid state updates
   onGridUpdate: (callback) => ipcRenderer.on('grid-update', (_, data) => callback(data)),
 
+  // DM: close/reopen local player window when toggling remote mode
+  closePlayerWindow:  () => ipcRenderer.send('close-player-window'),
+  reopenPlayerWindow: () => ipcRenderer.send('reopen-player-window'),
+
   // Remote mode
   remoteStart: () => ipcRenderer.invoke('remote-start'),
   remoteEnd: (sessionId) => ipcRenderer.invoke('remote-end', sessionId),

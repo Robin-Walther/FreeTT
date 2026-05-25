@@ -83,6 +83,39 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindows();
 });
 
+// IPC: DM closes local player window (when switching to remote mode)
+ipcMain.on('close-player-window', () => {
+  if (playerWindow) playerWindow.close();
+});
+
+// IPC: DM reopens local player window (when switching back to local mode)
+ipcMain.on('reopen-player-window', () => {
+  if (playerWindow) return;
+  const displays = screen.getAllDisplays();
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const secondaryDisplay = displays.find(d => d.id !== primaryDisplay.id) || primaryDisplay;
+  const playerX = secondaryDisplay === primaryDisplay
+    ? primaryDisplay.bounds.x + primaryDisplay.bounds.width - 1280 - 50
+    : secondaryDisplay.bounds.x + 50;
+  const playerY = secondaryDisplay.bounds.y + 50;
+  playerWindow = new BrowserWindow({
+    x: playerX,
+    y: playerY,
+    width: 1280,
+    height: 800,
+    title: 'FreeTT – Player Screen',
+    backgroundColor: '#0d0d0d',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      backgroundThrottling: false,
+    },
+  });
+  playerWindow.loadFile('player-local/player-screen.html');
+  playerWindow.on('closed', () => { playerWindow = null; });
+});
+
 // IPC: Player toggles native fullscreen
 ipcMain.handle('toggle-player-fullscreen', () => {
   if (playerWindow) {
