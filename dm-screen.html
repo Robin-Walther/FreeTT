@@ -34,6 +34,8 @@
       <div class="separator"></div>
       <button id="btn-reveal-all" class="btn btn-secondary">Alles aufdecken</button>
       <button id="btn-hide-all" class="btn btn-secondary">Alles verdecken</button>
+      <div class="separator"></div>
+      <button id="btn-ping-players" class="btn btn-secondary" title="Alle Spieler anpingen">&#x1F514; Ping</button>
     </div>
     <div class="toolbar-right">
       <button id="btn-save-session" class="btn btn-secondary" title="Session speichern">&#x1F4BE; Speichern</button>
@@ -164,6 +166,8 @@
       <canvas id="canvas-fog" class="canvas-layer canvas-fog-dm"></canvas>
       <!-- Token layer (above fog) -->
       <canvas id="canvas-tokens" class="canvas-layer canvas-tokens-layer"></canvas>
+      <!-- Ping animation layer (above tokens) -->
+      <canvas id="canvas-ping" class="canvas-layer canvas-ping-layer"></canvas>
       <!-- Brush cursor preview -->
       <canvas id="canvas-cursor" class="canvas-layer canvas-cursor"></canvas>
     </div>
@@ -236,6 +240,26 @@
       <div id="remote-player-links"></div>
       <button id="btn-end-remote" class="btn btn-secondary remote-end-btn">Session beenden</button>
     </div>
+  </div>
+
+  <!-- Token context menu (right-click on placed token) -->
+  <div id="token-ctx-menu" style="display:none">
+    <div class="ctx-menu-title" id="token-ctx-name"></div>
+    <div class="ctx-menu-section">
+      <span class="ctx-menu-label">Tokengröße</span>
+      <div class="ctx-menu-row">
+        <button id="token-ctx-size-minus" class="btn ctx-menu-btn">−</button>
+        <span id="token-ctx-size-val">40</span><span class="ctx-menu-unit"> px</span>
+        <button id="token-ctx-size-plus" class="btn ctx-menu-btn">+</button>
+      </div>
+      <div class="ctx-menu-presets">
+        <button class="btn ctx-preset-btn" data-size="20">XS</button>
+        <button class="btn ctx-preset-btn" data-size="40">M</button>
+        <button class="btn ctx-preset-btn" data-size="60">L</button>
+        <button class="btn ctx-preset-btn" data-size="90">XL</button>
+      </div>
+    </div>
+    <button id="token-ctx-remove" class="btn ctx-menu-remove-btn">Von Karte entfernen</button>
   </div>
 
   <script src="dm-screen.js"></script>

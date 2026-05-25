@@ -311,6 +311,14 @@ window.electronAPI.onGridUpdate((data) => {
   if (state.image) renderAll();
 });
 
+// Ping from DM → flash overlay
+window.electronAPI.onPingPlayers(() => {
+  const el = document.createElement('div');
+  el.className = 'ping-flash';
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+});
+
 // Incremental fog brush stroke
 window.electronAPI.onFogUpdate(({ cx, cy, radius, mode }) => {
   if (!fogCtx) return;

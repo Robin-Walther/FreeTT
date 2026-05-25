@@ -13,6 +13,7 @@
   <div id="player-header">
     <span class="app-title">&#x2694; FreeTT</span>
     <span id="connection-status" class="connection-status">Verbinde…</span>
+    <button id="ping-btn" title="Ping – DM auf Ort aufmerksam machen (Shift+Klick auf Karte)">&#x1F514;</button>
     <button id="ruler-btn" title="Lineal ein/aus">&#x1F4CF;</button>
     <button id="fullscreen-btn" title="Vollbild ein/aus">&#x26F6;</button>
   </div>
@@ -35,6 +36,8 @@
     <canvas id="canvas-tokens"         class="canvas-layer canvas-tokens-layer"></canvas>
     <!-- Ruler overlay (drawn on by JS, pointer-events: none) -->
     <canvas id="canvas-ruler"          class="canvas-layer canvas-ruler-layer"></canvas>
+    <!-- Ping animation overlay -->
+    <canvas id="canvas-ping"           class="canvas-layer canvas-ping-layer"></canvas>
     <!-- Transparent top layer for mouse/touch events -->
     <canvas id="canvas-events"         class="canvas-layer canvas-events-layer"></canvas>
   </div>

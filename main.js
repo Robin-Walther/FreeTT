@@ -398,6 +398,7 @@ function ensureRemoteServerRunning() {
       if (s.fog)    ws.send(JSON.stringify(s.fog));
       if (s.grid)   ws.send(JSON.stringify(s.grid));
       if (s.tokens) ws.send(JSON.stringify(s.tokens));
+      if (s.pins && s.pins.length > 0) ws.send(JSON.stringify({ type: 'pins', pins: s.pins }));
     } catch {}
 
     ws.on('message', (data) => {
@@ -409,6 +410,29 @@ function ensureRemoteServerRunning() {
             tokenId: msg.tokenId, tokenX: msg.tokenX, tokenY: msg.tokenY,
           });
           // Broadcast to other players in the same session
+          for (const [client] of session.clients) {
+            if (client !== ws && client.readyState === 1) client.send(JSON.stringify(msg));
+          }
+        }
+        if (msg.type === 'player-ping') {
+          // Forward to DM and broadcast to other players
+          if (dmWindow) dmWindow.webContents.send('remote-player-ping', { playerId, ...msg });
+          for (const [client] of session.clients) {
+            if (client !== ws && client.readyState === 1) client.send(JSON.stringify(msg));
+          }
+        }
+        if (msg.type === 'place-pin') {
+          if (!session.lastState.pins) session.lastState.pins = [];
+          const pin = msg.pin;
+          session.lastState.pins.push(pin);
+          if (dmWindow) dmWindow.webContents.send('remote-pin-event', { action: 'place', pin });
+          for (const [client] of session.clients) {
+            if (client !== ws && client.readyState === 1) client.send(JSON.stringify({ type: 'place-pin', pin }));
+          }
+        }
+        if (msg.type === 'remove-pin') {
+          if (session.lastState.pins) session.lastState.pins = session.lastState.pins.filter(p => p.id !== msg.pinId);
+          if (dmWindow) dmWindow.webContents.send('remote-pin-event', { action: 'remove', pinId: msg.pinId });
           for (const [client] of session.clients) {
             if (client !== ws && client.readyState === 1) client.send(JSON.stringify(msg));
           }
@@ -435,7 +459,7 @@ function remoteIpcPush(sessionId, msg) {
 ipcMain.handle('remote-start', async () => {
   ensureRemoteServerRunning();
   const sessionId = generateSessionCode();
-  remoteSessions.set(sessionId, { clients: new Map(), lastState: { map: null, fog: null, grid: null, tokens: null } });
+  remoteSessions.set(sessionId, { clients: new Map(), lastState: { map: null, fog: null, grid: null, tokens: null, pins: [] } });
   if (currentTunnel) { try { currentTunnel.close(); } catch {} currentTunnel = null; }
   try {
     const localtunnel = require('localtunnel');
@@ -504,4 +528,22 @@ ipcMain.on('remote-push-tokens', (_, { sessionId, tokens }) => {
 
 ipcMain.on('remote-push-volume', (_, { sessionId, value, muted }) => {
   remoteIpcPush(sessionId, { type: 'volume', value, muted });
+});
+
+// DM → local player ping
+ipcMain.on('ping-players', () => {
+  if (playerWindow) playerWindow.webContents.send('ping-players');
+});
+
+// DM → remote players ping
+ipcMain.on('remote-push-ping', (_, { sessionId }) => {
+  remoteIpcPush(sessionId, { type: 'ping' });
+});
+
+// DM removes a pin → update cached state + broadcast to remote players
+ipcMain.on('remote-push-pin-remove', (_, { sessionId, pinId }) => {
+  const session = remoteSessions.get(sessionId);
+  if (!session) return;
+  if (session.lastState.pins) session.lastState.pins = session.lastState.pins.filter(p => p.id !== pinId);
+  remoteIpcPush(sessionId, { type: 'remove-pin', pinId });
 });

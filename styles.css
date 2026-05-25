@@ -1416,3 +1416,138 @@ input[type="range"] {
   font-size: 12px;
   flex-shrink: 0;
 }
+
+/* ===== Ping Flash Overlay ===== */
+.ping-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: radial-gradient(circle, rgba(255, 200, 50, 0.35) 0%, transparent 65%);
+  animation: pingFade 1.5s ease-out forwards;
+}
+
+@keyframes pingFade {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ===== Ping canvas layer ===== */
+.canvas-ping-layer {
+  pointer-events: none;
+}
+
+/* ===== Token Context Menu ===== */
+#token-ctx-menu {
+  position: fixed;
+  z-index: 5000;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  min-width: 150px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+  font-size: 13px;
+}
+
+.ctx-menu-title {
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 6px;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ctx-menu-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.ctx-menu-section {
+  margin-bottom: 8px;
+}
+
+.ctx-menu-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 5px;
+}
+
+.ctx-menu-btn {
+  padding: 2px 8px;
+  font-size: 14px;
+  font-weight: 700;
+  min-width: 28px;
+}
+
+.ctx-menu-unit {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.ctx-menu-presets {
+  display: flex;
+  gap: 4px;
+}
+
+.ctx-preset-btn {
+  flex: 1;
+  padding: 3px 4px;
+  font-size: 11px;
+  background: var(--bg-toolbar);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ctx-preset-btn:hover {
+  background: var(--border);
+}
+
+.ctx-menu-remove-btn {
+  width: 100%;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ctx-menu-remove-btn:hover {
+  background: var(--red-hover);
+}
+
+/* ===== Initiative Status Field ===== */
+.combat-item-status {
+  padding: 2px 4px 3px;
+}
+
+.combat-status-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 11px;
+  padding: 1px 2px;
+  outline: none;
+  font-style: italic;
+}
+
+.combat-status-input:focus {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
+.combat-status-input:not(:placeholder-shown) {
+  color: #e8c86a;
+  font-style: normal;
+}

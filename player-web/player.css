@@ -129,3 +129,23 @@ html, body {
   font-size: 13px;
   color: var(--text-dim);
 }
+
+/* ===== Ping flash overlay ===== */
+.ping-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: radial-gradient(circle, rgba(255, 200, 50, 0.4) 0%, transparent 65%);
+  animation: pingFade 1.5s ease-out forwards;
+}
+
+@keyframes pingFade {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ===== Ping canvas layer ===== */
+.canvas-ping-layer {
+  pointer-events: none;
+}

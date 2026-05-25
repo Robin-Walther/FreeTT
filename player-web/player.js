@@ -14,6 +14,7 @@ const canvasMonsterTokens = document.getElementById('canvas-monster-tokens');
 const canvasFog           = document.getElementById('canvas-fog');
 const canvasTokens        = document.getElementById('canvas-tokens');
 const canvasRuler         = document.getElementById('canvas-ruler');
+const canvasPing          = document.getElementById('canvas-ping');
 const canvasEvents        = document.getElementById('canvas-events');
 
 const ctxImage         = canvasImage.getContext('2d');
@@ -22,12 +23,14 @@ const ctxMonsterTokens = canvasMonsterTokens.getContext('2d');
 const ctxFog           = canvasFog.getContext('2d');
 const ctxTokens        = canvasTokens.getContext('2d');
 const ctxRuler         = canvasRuler.getContext('2d');
+const ctxPing          = canvasPing.getContext('2d');
 
 const waitingScreen = document.getElementById('waiting-screen');
 const waitingDetail = document.getElementById('waiting-detail');
 const container     = document.getElementById('canvas-container');
 const statusEl      = document.getElementById('connection-status');
 const rulerBtn      = document.getElementById('ruler-btn');
+const pingBtn       = document.getElementById('ping-btn');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
 
 // === State ===
@@ -74,11 +77,29 @@ let rulerCurrentY = 0;
 // Token image cache: id -> { data: dataUrl, img: HTMLImageElement }
 const tokenImgCache = new Map();
 
+// Map pins
+let pins = []; // { id, playerId, colorHex, imgX, imgY, text }
+
+// Ping circles for player-ping display
+let pingCircles = []; // { imgX, imgY, color, startTime }
+let pingAnimFrameId = null;
+
+// Derive a deterministic color from a player UUID
+function playerColor(uuid) {
+  if (!uuid) return '#c9a84c';
+  let hash = 0;
+  for (let i = 0; i < uuid.length; i++) hash = (hash * 31 + uuid.charCodeAt(i)) | 0;
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 70%, 60%)`;
+}
+
+const MY_COLOR = MY_ID ? playerColor(MY_ID) : '#c9a84c';
+
 // === Canvas resize ===
 function resizeCanvases() {
   const w = container.clientWidth;
   const h = container.clientHeight;
-  [canvasImage, canvasGrid, canvasMonsterTokens, canvasFog, canvasTokens, canvasRuler, canvasEvents].forEach(c => {
+  [canvasImage, canvasGrid, canvasMonsterTokens, canvasFog, canvasTokens, canvasRuler, canvasPing, canvasEvents].forEach(c => {
     c.width  = w;
     c.height = h;
   });
@@ -196,6 +217,80 @@ function drawTokens() {
     ctx.fillText(t.name, cx, cy + r + 3);
     ctx.shadowBlur = 0;
   }
+
+  // Draw pins
+  for (const pin of pins) {
+    const cx = pin.imgX * state.scale + state.offsetX;
+    const cy = pin.imgY * state.scale + state.offsetY;
+    ctxTokens.beginPath();
+    ctxTokens.arc(cx, cy, 9, 0, Math.PI * 2);
+    ctxTokens.fillStyle = pin.colorHex;
+    ctxTokens.fill();
+    ctxTokens.strokeStyle = '#ffffff';
+    ctxTokens.lineWidth = 2;
+    ctxTokens.stroke();
+    ctxTokens.font = '10px sans-serif';
+    ctxTokens.fillStyle = '#fff';
+    ctxTokens.textAlign = 'center';
+    ctxTokens.textBaseline = 'middle';
+    ctxTokens.fillText('📌', cx, cy);
+    if (pin.text) {
+      ctxTokens.font = 'bold 11px sans-serif';
+      ctxTokens.fillStyle = '#ffffff';
+      ctxTokens.textAlign = 'center';
+      ctxTokens.textBaseline = 'bottom';
+      ctxTokens.shadowColor = '#000';
+      ctxTokens.shadowBlur = 3;
+      ctxTokens.fillText(pin.text, cx, cy - 11);
+      ctxTokens.shadowBlur = 0;
+    }
+  }
+}
+
+// === Ping animations ===
+function addPingCircle(imgX, imgY, color) {
+  pingCircles.push({ imgX, imgY, color, startTime: Date.now() });
+  if (!pingAnimFrameId) animatePings();
+}
+
+function animatePings() {
+  const now = Date.now();
+  const DURATION = 2000;
+  pingCircles = pingCircles.filter(p => now - p.startTime < DURATION);
+  ctxPing.clearRect(0, 0, canvasPing.width, canvasPing.height);
+
+  for (const p of pingCircles) {
+    const t  = (now - p.startTime) / DURATION;
+    const cx = p.imgX * state.scale + state.offsetX;
+    const cy = p.imgY * state.scale + state.offsetY;
+    const r  = t * 60;
+    ctxPing.beginPath();
+    ctxPing.arc(cx, cy, r, 0, Math.PI * 2);
+    ctxPing.strokeStyle = p.color;
+    ctxPing.lineWidth = 3;
+    ctxPing.globalAlpha = 1 - t;
+    ctxPing.stroke();
+    ctxPing.globalAlpha = 1;
+  }
+
+  if (pingCircles.length > 0) {
+    pingAnimFrameId = requestAnimationFrame(animatePings);
+  } else {
+    pingAnimFrameId = null;
+    ctxPing.clearRect(0, 0, canvasPing.width, canvasPing.height);
+  }
+}
+
+// === Pin hit testing ===
+function getPinAtScreen(sx, sy) {
+  for (const pin of pins) {
+    const cx = pin.imgX * state.scale + state.offsetX;
+    const cy = pin.imgY * state.scale + state.offsetY;
+    const dx = sx - cx;
+    const dy = sy - cy;
+    if (dx * dx + dy * dy <= 81) return pin;
+  }
+  return null;
 }
 
 // === Ruler ===
@@ -254,6 +349,14 @@ function toggleRuler() {
 }
 
 rulerBtn.addEventListener('click', toggleRuler);
+
+// Ping button: send player-ping at center of current view
+pingBtn.addEventListener('click', () => {
+  if (!state.image || !ws || ws.readyState !== WebSocket.OPEN) return;
+  const imgPos = screenToImage(canvasEvents.width / 2, canvasEvents.height / 2);
+  addPingCircle(imgPos.x, imgPos.y, MY_COLOR);
+  ws.send(JSON.stringify({ type: 'player-ping', playerId: MY_ID, imgX: imgPos.x, imgY: imgPos.y, color: MY_COLOR }));
+});
 
 // === WebSocket ===
 let ws = null;
@@ -328,17 +431,48 @@ function handleMessage(msg) {
       applyTokens(msg.tokens || []);
       break;
     case 'token-move': {
-      // Another player moved a token — update our local copy
       const tok = tokens.find(t => t.id === msg.tokenId);
       if (tok) { tok.tokenX = msg.tokenX; tok.tokenY = msg.tokenY; renderAll(); }
       break;
     }
+    case 'ping':
+      // DM ping → flash overlay
+      showPingFlash();
+      break;
+    case 'player-ping':
+      // Another player pinged a location
+      if (msg.playerId !== MY_ID) {
+        addPingCircle(msg.imgX, msg.imgY, msg.color);
+      }
+      break;
+    case 'pins':
+      pins = msg.pins || [];
+      renderAll();
+      break;
+    case 'place-pin':
+      if (msg.pin && !pins.find(p => p.id === msg.pin.id)) {
+        pins.push(msg.pin);
+        renderAll();
+      }
+      break;
+    case 'remove-pin':
+      pins = pins.filter(p => p.id !== msg.pinId);
+      renderAll();
+      break;
   }
+}
+
+function showPingFlash() {
+  const el = document.createElement('div');
+  el.className = 'ping-flash';
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
 }
 
 // === Map / Fog / Token loading ===
 function loadMapFromData(imageData) {
   stopVideoLoop();
+  pins = [];
   if (currentVideoEl) { currentVideoEl.pause(); currentVideoEl.src = ''; currentVideoEl = null; }
   const img = new Image();
   img.onload = () => {
@@ -438,7 +572,7 @@ function getOwnTokenAtScreen(sx, sy) {
   return null;
 }
 
-function onPointerDown(sx, sy) {
+function onPointerDown(sx, sy, shiftKey, ctrlKey) {
   if (rulerMode) {
     isRuling    = true;
     rulerStartX = sx;
@@ -446,6 +580,48 @@ function onPointerDown(sx, sy) {
     rulerCurrentX = sx;
     rulerCurrentY = sy;
     return;
+  }
+  // Ctrl+click: place a pin
+  if (ctrlKey && state.image) {
+    const imgPos = screenToImage(sx, sy);
+    const text = prompt('Kommentar (optional):');
+    if (text !== null) {
+      const pin = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+        playerId: MY_ID,
+        colorHex: MY_COLOR,
+        imgX: imgPos.x,
+        imgY: imgPos.y,
+        text: text.trim(),
+      };
+      pins.push(pin);
+      renderAll();
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'place-pin', pin }));
+      }
+    }
+    return;
+  }
+  // Shift+click: player ping at location
+  if (shiftKey && state.image) {
+    const imgPos = screenToImage(sx, sy);
+    addPingCircle(imgPos.x, imgPos.y, MY_COLOR);
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'player-ping', playerId: MY_ID, imgX: imgPos.x, imgY: imgPos.y, color: MY_COLOR }));
+    }
+    return;
+  }
+  // Click on own pin → remove it
+  if (!shiftKey && !ctrlKey) {
+    const pin = getPinAtScreen(sx, sy);
+    if (pin && pin.playerId === MY_ID) {
+      pins = pins.filter(p => p.id !== pin.id);
+      renderAll();
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'remove-pin', pinId: pin.id }));
+      }
+      return;
+    }
   }
   if (!MY_ID || !state.image) return;
   const t = getOwnTokenAtScreen(sx, sy);
@@ -497,7 +673,7 @@ function onPointerUp() {
 }
 
 // Mouse events
-canvasEvents.addEventListener('mousedown',  e => onPointerDown(e.offsetX, e.offsetY));
+canvasEvents.addEventListener('mousedown',  e => onPointerDown(e.offsetX, e.offsetY, e.shiftKey, e.ctrlKey || e.metaKey));
 canvasEvents.addEventListener('mousemove',  e => onPointerMove(e.offsetX, e.offsetY));
 canvasEvents.addEventListener('mouseup',    () => onPointerUp());
 canvasEvents.addEventListener('mouseleave', () => { if (dragToken) onPointerUp(); });

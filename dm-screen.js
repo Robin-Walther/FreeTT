@@ -73,11 +73,13 @@ const canvasImage  = document.getElementById('canvas-image');
 const canvasGrid   = document.getElementById('canvas-grid');
 const canvasFog    = document.getElementById('canvas-fog');
 const canvasTokens = document.getElementById('canvas-tokens');
+const canvasPing   = document.getElementById('canvas-ping');
 const canvasCursor = document.getElementById('canvas-cursor');
 const ctxImage     = canvasImage.getContext('2d');
 const ctxGrid      = canvasGrid.getContext('2d');
 const ctxFog       = canvasFog.getContext('2d');
 const ctxTokens    = canvasTokens.getContext('2d');
+const ctxPing      = canvasPing.getContext('2d');
 const ctxCursor    = canvasCursor.getContext('2d');
 
 const dropZone     = document.getElementById('drop-zone');
@@ -216,7 +218,7 @@ musicStopBtn.addEventListener('click', () => {
 function resizeCanvases() {
   const w = container.clientWidth;
   const h = container.clientHeight;
-  [canvasImage, canvasGrid, canvasFog, canvasTokens, canvasCursor].forEach(c => {
+  [canvasImage, canvasGrid, canvasFog, canvasTokens, canvasPing, canvasCursor].forEach(c => {
     c.width  = w;
     c.height = h;
   });
@@ -495,7 +497,7 @@ function addMediaToDeck(filePath) {
     video.src = src;
     video.addEventListener('loadeddata', () => {
       const { fogCanvas, fogCtx } = makeFog(video.videoWidth, video.videoHeight);
-      const slot = { id: ++slotIdCounter, filePath, video, isVideo: true, fogCanvas, fogCtx, name, musicVideoId: null, musicTitle: null, volume: parseInt(volumeSlider.value, 10), combatants: [], gridSize: null, gridOffsetX: 0, gridOffsetY: 0, gridVisible: false, gridOpacity: 15 };
+      const slot = { id: ++slotIdCounter, filePath, video, isVideo: true, fogCanvas, fogCtx, name, musicVideoId: null, musicTitle: null, volume: parseInt(volumeSlider.value, 10), combatants: [], pins: [], gridSize: null, gridOffsetX: 0, gridOffsetY: 0, gridVisible: false, gridOpacity: 15 };
       deck.push(slot);
       for (const gp of globalPlayers) addGlobalPlayerToSlot(gp, slot);
       rebuildDeckUI();
@@ -509,7 +511,7 @@ function addMediaToDeck(filePath) {
     img.src = src;
     img.onload = () => {
       const { fogCanvas, fogCtx } = makeFog(img.naturalWidth, img.naturalHeight);
-      const slot = { id: ++slotIdCounter, filePath, image: img, isVideo: false, fogCanvas, fogCtx, name, musicVideoId: null, musicTitle: null, volume: parseInt(volumeSlider.value, 10), combatants: [], gridSize: null, gridOffsetX: 0, gridOffsetY: 0, gridVisible: false, gridOpacity: 15 };
+      const slot = { id: ++slotIdCounter, filePath, image: img, isVideo: false, fogCanvas, fogCtx, name, musicVideoId: null, musicTitle: null, volume: parseInt(volumeSlider.value, 10), combatants: [], pins: [], gridSize: null, gridOffsetX: 0, gridOffsetY: 0, gridVisible: false, gridOpacity: 15 };
       deck.push(slot);
       for (const gp of globalPlayers) addGlobalPlayerToSlot(gp, slot);
       rebuildDeckUI();
@@ -629,14 +631,15 @@ function rebuildDeckUI() {
 canvasImage.addEventListener('mousedown', (e) => {
   if (!getActiveSlot()) return;
   if (e.button === 2) {
-    // Right-click on placed token: remove from map; otherwise pan
+    // Right-click: check for pin first, then token context menu, then pan
+    const pinHit = getPinAtScreen(e.offsetX, e.offsetY);
+    if (pinHit) {
+      removePinFromDM(pinHit.id);
+      return;
+    }
     const tokenHit = getTokenAtScreen(e.offsetX, e.offsetY);
     if (tokenHit) {
-      tokenHit.tokenX = null;
-      tokenHit.tokenY = null;
-      renderAll();
-      rebuildCombatUI();
-      sendTokensSync();
+      showTokenContextMenu(tokenHit, e.clientX, e.clientY);
       return;
     }
     state.isPanning = true;
@@ -889,6 +892,65 @@ container.addEventListener('drop', (e) => {
     .forEach(f => addMediaToDeck(f.path));
 });
 
+// ===== Token Context Menu =====
+let ctxMenuToken = null;
+
+function showTokenContextMenu(token, clientX, clientY) {
+  ctxMenuToken = token;
+  const menu = document.getElementById('token-ctx-menu');
+  document.getElementById('token-ctx-name').textContent = token.name;
+  document.getElementById('token-ctx-size-val').textContent = token.tokenSize || 40;
+  menu.style.display = '';
+  // Keep menu within viewport
+  const menuW = 160, menuH = 140;
+  const left = Math.min(clientX, window.innerWidth - menuW - 8);
+  const top  = Math.min(clientY, window.innerHeight - menuH - 8);
+  menu.style.left = left + 'px';
+  menu.style.top  = top  + 'px';
+}
+
+function closeTokenContextMenu() {
+  document.getElementById('token-ctx-menu').style.display = 'none';
+  ctxMenuToken = null;
+}
+
+function applyTokenSize(size) {
+  if (!ctxMenuToken) return;
+  ctxMenuToken.tokenSize = Math.max(10, size);
+  document.getElementById('token-ctx-size-val').textContent = ctxMenuToken.tokenSize;
+  renderAll();
+  rebuildCombatUI();
+  sendTokensSync();
+}
+
+document.getElementById('token-ctx-size-minus').addEventListener('click', () => {
+  if (ctxMenuToken) applyTokenSize((ctxMenuToken.tokenSize || 40) - 5);
+});
+document.getElementById('token-ctx-size-plus').addEventListener('click', () => {
+  if (ctxMenuToken) applyTokenSize((ctxMenuToken.tokenSize || 40) + 5);
+});
+document.querySelectorAll('.ctx-preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyTokenSize(parseInt(btn.dataset.size, 10)));
+});
+document.getElementById('token-ctx-remove').addEventListener('click', () => {
+  if (ctxMenuToken) {
+    ctxMenuToken.tokenX = null;
+    ctxMenuToken.tokenY = null;
+    closeTokenContextMenu();
+    renderAll();
+    rebuildCombatUI();
+    sendTokensSync();
+  }
+});
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('token-ctx-menu');
+  if (menu.style.display !== 'none' && !menu.contains(e.target)) closeTokenContextMenu();
+});
+document.addEventListener('contextmenu', (e) => {
+  const menu = document.getElementById('token-ctx-menu');
+  if (menu.style.display !== 'none' && !menu.contains(e.target)) closeTokenContextMenu();
+});
+
 // ===== Token System =====
 let tokenDragState = null; // { combatant } when dragging a placed token on the canvas
 
@@ -959,7 +1021,127 @@ function drawTokensLayer(slot) {
     ctxTokens.fillText(c.name, sc.x, sc.y + r + 3);
     ctxTokens.shadowBlur = 0;
   }
+
+  // Draw map pins
+  if (slot.pins) {
+    for (const pin of slot.pins) {
+      const sc = imageToScreen(pin.imgX, pin.imgY);
+      // Pin circle
+      ctxTokens.beginPath();
+      ctxTokens.arc(sc.x, sc.y, 9, 0, Math.PI * 2);
+      ctxTokens.fillStyle = pin.colorHex;
+      ctxTokens.fill();
+      ctxTokens.strokeStyle = '#ffffff';
+      ctxTokens.lineWidth = 2;
+      ctxTokens.stroke();
+      // Pin icon
+      ctxTokens.font = '10px sans-serif';
+      ctxTokens.fillStyle = '#fff';
+      ctxTokens.textAlign = 'center';
+      ctxTokens.textBaseline = 'middle';
+      ctxTokens.fillText('📌', sc.x, sc.y);
+      // Pin label above
+      if (pin.text) {
+        ctxTokens.font = 'bold 11px sans-serif';
+        ctxTokens.fillStyle = '#ffffff';
+        ctxTokens.textAlign = 'center';
+        ctxTokens.textBaseline = 'bottom';
+        ctxTokens.shadowColor = '#000';
+        ctxTokens.shadowBlur = 3;
+        ctxTokens.fillText(pin.text, sc.x, sc.y - 11);
+        ctxTokens.shadowBlur = 0;
+      }
+    }
+  }
 }
+
+// ===== Ping Animations =====
+let pingCircles = []; // { imgX, imgY, color, startTime }
+let pingAnimFrameId = null;
+
+function addPingCircle(imgX, imgY, color) {
+  pingCircles.push({ imgX, imgY, color, startTime: Date.now() });
+  if (!pingAnimFrameId) animatePings();
+}
+
+function animatePings() {
+  const now = Date.now();
+  const DURATION = 2000;
+  pingCircles = pingCircles.filter(p => now - p.startTime < DURATION);
+  ctxPing.clearRect(0, 0, canvasPing.width, canvasPing.height);
+
+  for (const p of pingCircles) {
+    const t = (now - p.startTime) / DURATION; // 0..1
+    const sc = imageToScreen(p.imgX, p.imgY);
+    const maxR = 60;
+    const r = t * maxR;
+    const alpha = 1 - t;
+    ctxPing.beginPath();
+    ctxPing.arc(sc.x, sc.y, r, 0, Math.PI * 2);
+    ctxPing.strokeStyle = p.color;
+    ctxPing.lineWidth = 3;
+    ctxPing.globalAlpha = alpha;
+    ctxPing.stroke();
+    ctxPing.globalAlpha = 1;
+  }
+
+  if (pingCircles.length > 0) {
+    pingAnimFrameId = requestAnimationFrame(animatePings);
+  } else {
+    pingAnimFrameId = null;
+    ctxPing.clearRect(0, 0, canvasPing.width, canvasPing.height);
+  }
+}
+
+function showDMPingFlash() {
+  const el = document.createElement('div');
+  el.className = 'ping-flash';
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+// ===== Pin helpers =====
+function getPinAtScreen(sx, sy) {
+  const slot = getActiveSlot();
+  if (!slot || !slot.pins) return null;
+  for (const pin of slot.pins) {
+    const sc = imageToScreen(pin.imgX, pin.imgY);
+    const dx = sx - sc.x;
+    const dy = sy - sc.y;
+    if (dx * dx + dy * dy <= 81) return pin; // 9px radius
+  }
+  return null;
+}
+
+function removePinFromDM(pinId) {
+  const slot = getActiveSlot();
+  if (!slot || !slot.pins) return;
+  slot.pins = slot.pins.filter(p => p.id !== pinId);
+  renderAll();
+  if (syncMode === 'remote' && currentSessionId) {
+    window.electronAPI.remotePushPinRemove({ sessionId: currentSessionId, pinId });
+  }
+}
+
+// DM receives pin events from remote players
+window.electronAPI.onRemotePinEvent(({ action, pin, pinId }) => {
+  if (syncMode !== 'remote') return;
+  const slot = getActiveSlot();
+  if (!slot) return;
+  if (!slot.pins) slot.pins = [];
+  if (action === 'place') {
+    slot.pins.push(pin);
+  } else if (action === 'remove') {
+    slot.pins = slot.pins.filter(p => p.id !== pinId);
+  }
+  renderAll();
+});
+
+// DM receives player-ping from remote player
+window.electronAPI.onRemotePlayerPing(({ playerId, imgX, imgY, color }) => {
+  if (syncMode !== 'remote') return;
+  addPingCircle(imgX, imgY, color);
+});
 
 function sendTokensSync() {
   const slot = getActiveSlot();
@@ -1026,6 +1208,7 @@ function copyCombatantToSlot(combatant, targetSlot) {
     tokenX: null,
     tokenY: null,
     tokenSize: combatant.tokenSize ?? 40,
+    status: combatant.status ?? '',
   };
   if (copy.tokenPath) {
     const img = new Image();
@@ -1251,6 +1434,18 @@ function rebuildCombatUI() {
       item.appendChild(hpRow);
     }
 
+    // --- Status row (all combatants) ---
+    const statusRow = document.createElement('div');
+    statusRow.className = 'combat-item-status';
+    const statusInput = document.createElement('input');
+    statusInput.type = 'text';
+    statusInput.className = 'combat-status-input';
+    statusInput.placeholder = 'Status (z.B. vergiftet)…';
+    statusInput.value = c.status || '';
+    statusInput.addEventListener('input', () => { c.status = statusInput.value; });
+    statusRow.appendChild(statusInput);
+    item.appendChild(statusRow);
+
     // --- Drag & Drop (only from handle) ---
     item.addEventListener('dragstart', (e) => {
       if (!combatDragFromHandle) {
@@ -1313,7 +1508,7 @@ function confirmAddCombatant() {
   const slot = getActiveSlot();
   if (!slot) { closeCombatAddOverlay(); return; }
   const maxHp = combatAddType === 'monster' ? Math.max(1, parseInt(combatAddMaxHp.value, 10) || 1) : null;
-  slot.combatants.push({ id: ++combatIdCounter, name, type: combatAddType, hp: maxHp, maxHp, tokenPath: null, tokenImg: null, tokenX: null, tokenY: null, tokenSize: 40 });
+  slot.combatants.push({ id: ++combatIdCounter, name, type: combatAddType, hp: maxHp, maxHp, tokenPath: null, tokenImg: null, tokenX: null, tokenY: null, tokenSize: 40, status: '' });
   closeCombatAddOverlay();
   rebuildCombatUI();
 }
@@ -1363,7 +1558,9 @@ async function saveSession() {
           tokenX: c.tokenX ?? null,
           tokenY: c.tokenY ?? null,
           tokenSize: c.tokenSize ?? 40,
+          status: c.status ?? '',
         })),
+        pins: (slot.pins ?? []).map(p => ({ ...p })),
       });
     });
   }));
@@ -1429,7 +1626,9 @@ function addSessionSlot(savedSlot, onReady) {
       ...c,
       tokenImg: null,
       tokenSize: c.tokenSize ?? 40,
+      status: c.status ?? '',
     }));
+    slot.pins = (savedSlot.pins ?? []);
     if (slot.combatants.length > 0) {
       const maxId = Math.max(...slot.combatants.map(c => c.id ?? 0));
       if (maxId >= combatIdCounter) combatIdCounter = maxId + 1;
@@ -1985,6 +2184,15 @@ async function endRemoteSession() {
   tunnelUrl        = null;
   updateRemotePanel();
 }
+
+// Ping button: DM pings all players
+document.getElementById('btn-ping-players').addEventListener('click', () => {
+  window.electronAPI.sendPingPlayers();
+  if (syncMode === 'remote' && currentSessionId) {
+    window.electronAPI.remotePushPing({ sessionId: currentSessionId });
+  }
+  showDMPingFlash();
+});
 
 // Listen for token moves from remote players (registered once at startup)
 window.electronAPI.onRemoteTokenMoved(({ tokenId, tokenX, tokenY }) => {
