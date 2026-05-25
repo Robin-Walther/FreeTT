@@ -31,7 +31,7 @@ function createWindows() {
     },
   });
 
-  dmWindow.loadFile('dm-screen.html');
+  dmWindow.loadFile('dm/dm-screen.html');
 
   // Player Screen on secondary monitor (or primary if only one)
   const playerX = secondaryDisplay === primaryDisplay
@@ -54,7 +54,7 @@ function createWindows() {
     },
   });
 
-  playerWindow.loadFile('player-screen.html');
+  playerWindow.loadFile('player-local/player-screen.html');
 
   dmWindow.on('closed', () => {
     dmWindow = null;
