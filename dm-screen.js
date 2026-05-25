@@ -1,5 +1,8 @@
 'use strict';
 
+// ===== i18n shortcut =====
+function t(key, ...args) { return window.FREETT_I18N ? window.FREETT_I18N.t(key, ...args) : key; }
+
 // ===== Remote Mode =====
 let syncMode = 'local'; // 'local' | 'remote'
 let currentSessionId = null;
@@ -118,7 +121,7 @@ function sendVolume() {
 function updateVolumeIcon() {
   const vol = isMuted ? 0 : sliderToVolume(volumeSlider.value);
   volumeIcon.innerHTML = isMuted || vol === 0 ? '&#x1F507;' : vol < 0.25 ? '&#x1F509;' : '&#x1F50A;';
-  volumeIcon.title = isMuted ? 'Stummschaltung aufheben' : 'Stummschalten';
+  volumeIcon.title = isMuted ? t('unmute') : t('mute');
 }
 
 volumeIcon.addEventListener('click', () => {
@@ -172,11 +175,11 @@ function updateMusicNowPlaying() {
 async function performMusicSearch() {
   const query = musicSearchInput.value.trim();
   if (!query) return;
-  musicResultsEl.innerHTML = '<div class="music-status">Suche…</div>';
+  musicResultsEl.innerHTML = `<div class="music-status">${t('music.searching')}</div>`;
   const results = await window.electronAPI.youtubeSearch(query);
   musicResultsEl.innerHTML = '';
   if (!results.length) {
-    musicResultsEl.innerHTML = '<div class="music-status">Keine Ergebnisse</div>';
+    musicResultsEl.innerHTML = `<div class="music-status">${t('music.no_results')}</div>`;
     return;
   }
   for (const { id, title } of results) {
@@ -457,9 +460,9 @@ function drawRuler(sx1, sy1, sx2, sy2) {
   if (slot?.gridSize) {
     const fields = dist / slot.gridSize;
     const feet = fields * 5;
-    label = `${fields.toFixed(1)} Felder (${feet.toFixed(1)} ft)`;
+    label = t('ruler.fields_ft', fields.toFixed(1), feet.toFixed(1));
   } else {
-    label = `${Math.round(dist)} px`;
+    label = t('ruler.px', Math.round(dist));
   }
 
   ctxCursor.font = 'bold 13px sans-serif';
@@ -504,7 +507,7 @@ function addMediaToDeck(filePath) {
       if (activeSlotId === null) switchToSlot(slot.id);
     });
     video.addEventListener('error', () => {
-      statusText.textContent = 'Fehler beim Laden: ' + name;
+      statusText.textContent = t('session.map_error') + name;
     });
   } else {
     const img = new Image();
@@ -518,7 +521,7 @@ function addMediaToDeck(filePath) {
       if (activeSlotId === null) switchToSlot(slot.id);
     };
     img.onerror = () => {
-      statusText.textContent = 'Fehler beim Laden: ' + name;
+      statusText.textContent = t('session.map_error') + name;
     };
   }
 }
@@ -583,7 +586,7 @@ function removeFromDeck(id) {
       ctxGrid.clearRect(0, 0, canvasGrid.width, canvasGrid.height);
       ctxFog.clearRect(0, 0, canvasFog.width, canvasFog.height);
       dropZone.style.display = 'flex';
-      statusText.textContent = 'Kein Bild geladen';
+      statusText.textContent = t('status.no_image');
       window.electronAPI.sendMusicStop();
       updateMusicNowPlaying();
       rebuildCombatUI();
@@ -607,7 +610,7 @@ function rebuildDeckUI() {
     const removeBtn = document.createElement('button');
     removeBtn.className = 'deck-item-remove';
     removeBtn.textContent = '×';
-    removeBtn.title = 'Entfernen';
+    removeBtn.title = t('combat.remove.title');
     removeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       removeFromDeck(slot.id);
@@ -1226,13 +1229,13 @@ function showCopyMenu(combatant, buttonEl) {
 
   const header = document.createElement('div');
   header.className = 'copy-scene-menu-header';
-  header.textContent = 'In Szene kopieren';
+  header.textContent = t('combat.copy.header');
   menu.appendChild(header);
 
   if (otherSlots.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'copy-scene-menu-empty';
-    empty.textContent = 'Keine anderen Szenen';
+    empty.textContent = t('combat.copy.no_scenes');
     menu.appendChild(empty);
   } else {
     for (const slot of otherSlots) {
@@ -1307,7 +1310,7 @@ function rebuildCombatUI() {
     const handle = document.createElement('span');
     handle.className = 'combat-drag-handle';
     handle.textContent = '⠿';
-    handle.title = 'Ziehen zum Sortieren';
+    handle.title = t('combat.drag.title');
     handle.addEventListener('mousedown', () => { combatDragFromHandle = true; });
     handle.addEventListener('mouseleave', () => { combatDragFromHandle = false; });
 
@@ -1323,7 +1326,7 @@ function rebuildCombatUI() {
     const copyBtn = document.createElement('button');
     copyBtn.className = 'combat-item-copy';
     copyBtn.textContent = '⧉';
-    copyBtn.title = 'In andere Szene kopieren';
+    copyBtn.title = t('combat.copy.title');
     copyBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       showCopyMenu(c, copyBtn);
@@ -1332,7 +1335,7 @@ function rebuildCombatUI() {
     const removeBtn = document.createElement('button');
     removeBtn.className = 'combat-item-remove';
     removeBtn.textContent = '×';
-    removeBtn.title = 'Entfernen';
+    removeBtn.title = t('combat.remove.title');
     removeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       slot.combatants.splice(idx, 1);
@@ -1350,8 +1353,8 @@ function rebuildCombatUI() {
       thumb.src = `file:///${c.tokenPath.replace(/\\/g, '/')}`;
       thumb.draggable = true;
       thumb.title = c.tokenX != null
-        ? 'Auf Karte (erneut ziehen oder Rechtsklick zum Entfernen)'
-        : 'Token auf Karte ziehen';
+        ? t('combat.token.title.placed')
+        : t('combat.token.title.unplaced');
       thumb.addEventListener('dragstart', (ev) => {
         ev.stopPropagation();
         ev.dataTransfer.setData('application/dnd-combat-token', c.id.toString());
@@ -1366,7 +1369,7 @@ function rebuildCombatUI() {
       const tokenBtn = document.createElement('button');
       tokenBtn.className = 'combat-token-empty';
       tokenBtn.textContent = '🖼';
-      tokenBtn.title = 'Token-Bild laden';
+      tokenBtn.title = t('btn.load_token.title');
       tokenBtn.addEventListener('click', (ev) => {
         ev.stopPropagation();
         openTokenDialog(c);
@@ -1389,7 +1392,7 @@ function rebuildCombatUI() {
       const minusBtn = document.createElement('button');
       minusBtn.className = 'combat-hp-btn';
       minusBtn.textContent = '−';
-      minusBtn.title = 'Schaden';
+      minusBtn.title = t('combat.hp.damage.title');
 
       const hpInput = document.createElement('input');
       hpInput.type = 'number';
@@ -1397,7 +1400,7 @@ function rebuildCombatUI() {
       hpInput.value = c.hp;
       hpInput.min = 0;
       hpInput.max = c.maxHp;
-      hpInput.title = 'Aktuelle HP';
+      hpInput.title = t('combat.hp.current.title');
 
       const sep = document.createElement('span');
       sep.className = 'combat-hp-sep';
@@ -1410,7 +1413,7 @@ function rebuildCombatUI() {
       const plusBtn = document.createElement('button');
       plusBtn.className = 'combat-hp-btn';
       plusBtn.textContent = '+';
-      plusBtn.title = 'Heilen';
+      plusBtn.title = t('combat.hp.heal.title');
 
       hpInput.addEventListener('change', () => {
         c.hp = Math.max(0, Math.min(c.maxHp, parseInt(hpInput.value, 10) || 0));
@@ -1438,7 +1441,7 @@ function rebuildCombatUI() {
     const statusInput = document.createElement('input');
     statusInput.type = 'text';
     statusInput.className = 'combat-status-input';
-    statusInput.placeholder = 'Status (z.B. vergiftet)…';
+    statusInput.placeholder = t('combat.status.placeholder');
     statusInput.value = c.status || '';
     statusInput.addEventListener('input', () => { c.status = statusInput.value; });
     statusRow.appendChild(statusInput);
@@ -1487,7 +1490,7 @@ function rebuildCombatUI() {
 
 function openCombatAddOverlay(type) {
   combatAddType = type;
-  combatAddTypeLabel.textContent = type === 'monster' ? '⚔ Monster hinzufügen' : '🧙 Spieler hinzufügen';
+  combatAddTypeLabel.textContent = type === 'monster' ? t('combat.add.monster') : t('combat.add.player');
   combatAddHpFields.style.display = type === 'monster' ? 'flex' : 'none';
   combatAddName.value = '';
   combatAddMaxHp.value = '10';
@@ -1572,8 +1575,8 @@ async function saveSession() {
   };
   const result = await window.electronAPI.saveSession(data);
   if (result?.success) {
-    statusText.textContent = 'Session gespeichert';
-    setTimeout(() => { statusText.textContent = getActiveSlot()?.name ?? 'Kein Bild geladen'; }, 2000);
+    statusText.textContent = t('session.saved');
+    setTimeout(() => { statusText.textContent = getActiveSlot()?.name ?? t('status.no_image'); }, 2000);
   }
 }
 
@@ -1587,7 +1590,7 @@ function clearDeck() {
   ctxGrid.clearRect(0, 0, canvasGrid.width, canvasGrid.height);
   ctxFog.clearRect(0, 0, canvasFog.width, canvasFog.height);
   dropZone.style.display = 'flex';
-  statusText.textContent = 'Kein Bild geladen';
+  statusText.textContent = t('status.no_image');
   window.electronAPI.sendMusicStop();
   updateMusicNowPlaying();
   rebuildDeckUI();
@@ -1723,13 +1726,13 @@ function updateRulerStatus() {
   if (!isRulerActive) return;
   const slot = getActiveSlot();
   if (slot?.gridSize) {
-    rulerStatusText.textContent = `1 Feld = ${Math.round(slot.gridSize)} px`;
+    rulerStatusText.textContent = `${t('ruler.calibrated')} ${Math.round(slot.gridSize)} ${t('ruler.calibrated.px')}`;
     rulerStatusText.className = 'ruler-status-calibrated';
-    recalibBtn.textContent = 'Neu kalibrieren';
+    recalibBtn.textContent = t('btn.recalibrate2');
   } else {
-    rulerStatusText.textContent = 'Nicht kalibriert';
+    rulerStatusText.textContent = t('ruler.uncalibrated');
     rulerStatusText.className = 'ruler-status-uncalibrated';
-    recalibBtn.textContent = 'Kalibrieren';
+    recalibBtn.textContent = t('btn.calibrate');
   }
 }
 
@@ -1810,7 +1813,7 @@ function deactivateGridAlign() {
     state.tool = state.prevTool || 'reveal';
   }
   document.getElementById('btn-grid-align').classList.remove('active');
-  document.getElementById('btn-grid-align').textContent = 'Versatz ziehen';
+  document.getElementById('btn-grid-align').textContent = t('btn.grid_align');
   canvasImage.style.cursor = '';
 }
 
@@ -1883,7 +1886,7 @@ document.getElementById('btn-grid-align').addEventListener('click', () => {
     state.prevTool = state.tool;
     state.tool = 'grid-align';
     document.getElementById('btn-grid-align').classList.add('active');
-    document.getElementById('btn-grid-align').textContent = 'Fertig ✕';
+    document.getElementById('btn-grid-align').textContent = t('btn.grid_align.done');
     canvasImage.style.cursor = 'move';
     document.querySelectorAll('.btn-tool').forEach(b => b.classList.remove('active'));
     updateRulerStatus();
@@ -1973,14 +1976,14 @@ function rebuildPlayersUI() {
       thumb.className = 'combat-token-img';
       thumb.src = `file:///${gp.tokenPath.replace(/\\/g, '/')}`;
       thumb.draggable = false;
-      thumb.title = 'Token-Bild ändern';
+      thumb.title = t('player.token.title');
       thumb.addEventListener('click', () => openGlobalPlayerTokenDialog(gp));
       tokenSlot.appendChild(thumb);
     } else {
       const btn = document.createElement('button');
       btn.className = 'combat-token-empty';
       btn.textContent = '🖼';
-      btn.title = 'Token-Bild laden';
+      btn.title = t('btn.load_token.title');
       btn.addEventListener('click', () => openGlobalPlayerTokenDialog(gp));
       tokenSlot.appendChild(btn);
     }
@@ -1992,7 +1995,7 @@ function rebuildPlayersUI() {
     const removeBtn = document.createElement('button');
     removeBtn.className = 'combat-item-remove';
     removeBtn.textContent = '×';
-    removeBtn.title = 'Spieler entfernen';
+    removeBtn.title = t('player.remove.title');
     removeBtn.addEventListener('click', () => removeGlobalPlayer(gp.id));
 
     item.append(tokenSlot, nameSpan);
@@ -2000,7 +2003,7 @@ function rebuildPlayersUI() {
       const linkBtn = document.createElement('button');
       linkBtn.className = 'btn btn-secondary player-link-btn';
       linkBtn.textContent = '🔗';
-      linkBtn.title = `Link für ${gp.name} kopieren`;
+      linkBtn.title = t('player.copy_link.title');
       linkBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const link = `${tunnelUrl || ''}?session=${currentSessionId}&player=${gp.uuid}`;
@@ -2091,7 +2094,7 @@ function updateRemotePanel() {
     inactive.style.display = '';
     active.style.display   = 'none';
     startBtn.disabled      = false;
-    startBtn.textContent   = 'Session starten';
+    startBtn.textContent   = t('btn.start_remote');
     modeBtn.classList.remove('remote-mode-btn-active');
   }
 
@@ -2108,7 +2111,7 @@ function rebuildRemotePlayerLinks() {
   if (globalPlayers.length === 0) {
     const hint = document.createElement('div');
     hint.className = 'remote-no-players-hint';
-    hint.textContent = 'Keine Spieler. Im Bereich "Spieler" hinzufügen.';
+    hint.textContent = t('remote.no_players');
     container.appendChild(hint);
     return;
   }
@@ -2123,14 +2126,14 @@ function rebuildRemotePlayerLinks() {
 
     const copyBtn = document.createElement('button');
     copyBtn.className = 'btn btn-secondary btn-sm remote-player-link-btn';
-    copyBtn.title = 'Link kopieren';
-    copyBtn.textContent = '🔗 Link';
+    copyBtn.title = t('btn.copy_player_link.title');
+    copyBtn.textContent = t('btn.copy_player_link');
     copyBtn.addEventListener('click', () => {
       const link = getPlayerLink(gp.uuid);
       navigator.clipboard.writeText(link)
         .then(() => {
-          copyBtn.textContent = '✓ Kopiert';
-          setTimeout(() => { copyBtn.textContent = '🔗 Link'; }, 2000);
+          copyBtn.textContent = t('btn.copy_player_link.done');
+          setTimeout(() => { copyBtn.textContent = t('btn.copy_player_link'); }, 2000);
         })
         .catch(console.error);
     });
@@ -2143,7 +2146,7 @@ function rebuildRemotePlayerLinks() {
 async function startRemoteSession() {
   const btn = document.getElementById('btn-start-remote');
   btn.disabled    = true;
-  btn.textContent = 'Starte…';
+  btn.textContent = t('btn.start_remote.starting');
   try {
     const result = await window.electronAPI.remoteStart();
     currentSessionId = result.sessionId;
@@ -2169,9 +2172,9 @@ async function startRemoteSession() {
     updateRemotePanel();
   } catch (e) {
     console.error('[Remote] Start failed:', e);
-    alert('Session konnte nicht gestartet werden:\n' + e.message);
+    alert(t('remote.start_error') + e.message);
     btn.disabled    = false;
-    btn.textContent = 'Session starten';
+    btn.textContent = t('btn.start_remote');
   }
 }
 
@@ -2231,7 +2234,7 @@ document.getElementById('remote-panel-close').addEventListener('click', () => {
 document.getElementById('btn-start-remote').addEventListener('click', startRemoteSession);
 
 document.getElementById('btn-end-remote').addEventListener('click', async () => {
-  if (confirm('Remote Session beenden? Alle verbundenen Spieler werden getrennt.')) {
+  if (confirm(t('remote.end.confirm'))) {
     await endRemoteSession();
   }
 });
@@ -2246,3 +2249,40 @@ document.getElementById('btn-copy-session-link').addEventListener('click', () =>
     })
     .catch(console.error);
 });
+
+// ===== i18n + Language Switcher + Help Button =====
+(function () {
+  const I18N = window.FREETT_I18N;
+  if (!I18N) return;
+
+  // Set select to current language
+  const sel = document.getElementById('lang-select');
+  if (sel) {
+    sel.value = I18N.getLang();
+    sel.addEventListener('change', () => {
+      I18N.setLang(sel.value);
+      I18N.applyTranslations();
+      // Re-render dynamic UI that can't be reached via data-i18n
+      updateVolumeIcon();
+      updateRulerStatus();
+      rebuildDeckUI();
+      rebuildCombatUI();
+      rebuildPlayersUI();
+      updateRemotePanel();
+    });
+  }
+
+  // Apply static translations from data-i18n attributes
+  I18N.applyTranslations();
+
+  // Help button
+  const helpBtn  = document.getElementById('btn-help-dm');
+  const helpModal = document.getElementById('help-modal');
+  const helpClose = document.getElementById('help-modal-close');
+  if (helpBtn && helpModal) {
+    helpBtn.addEventListener('click', () => { helpModal.style.display = ''; });
+    helpClose.addEventListener('click', () => { helpModal.style.display = 'none'; });
+    helpModal.querySelector('.help-modal-backdrop').addEventListener('click', () => { helpModal.style.display = 'none'; });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && helpModal.style.display !== 'none') helpModal.style.display = 'none'; });
+  }
+})();

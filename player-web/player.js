@@ -2,6 +2,10 @@
 
 (function () {
 
+// i18n shortcut — i18n.js must be loaded before player.js
+function t(key, ...args) { return window.FREETT_I18N ? window.FREETT_I18N.t(key, ...args) : key; }
+
+
 // === URL params ===
 const params  = new URLSearchParams(location.search);
 const SESSION = params.get('session');
@@ -320,9 +324,9 @@ function drawRulerLine(sx1, sy1, sx2, sy2) {
   if (gridState.gridSize) {
     const fields = dist / gridState.gridSize;
     const feet   = fields * 5;
-    label = `${fields.toFixed(1)} Felder (${feet.toFixed(1)} ft)`;
+    label = t('ruler.fields_ft', fields.toFixed(1), feet.toFixed(1));
   } else {
-    label = `${Math.round(dist)} px`;
+    label = t('ruler.px', Math.round(dist));
   }
 
   const midX = (sx1 + sx2) / 2;
@@ -364,8 +368,8 @@ let reconnectTimer = null;
 
 function connect() {
   if (!SESSION) {
-    waitingDetail.textContent = 'Kein Session-Code. Bitte einen Link vom DM anfordern.';
-    statusEl.textContent = 'Fehler';
+    waitingDetail.textContent = t('player.no_session');
+    statusEl.textContent = t('player.conn_error');
     statusEl.className = 'connection-status error';
     return;
   }
@@ -376,9 +380,9 @@ function connect() {
   ws = new WebSocket(`${proto}//${location.host}${location.search}`);
 
   ws.onopen = () => {
-    statusEl.textContent = 'Verbunden';
+    statusEl.textContent = t('player.connected');
     statusEl.className = 'connection-status connected';
-    if (!state.image) waitingDetail.textContent = 'Warte auf Karte vom DM…';
+    if (!state.image) waitingDetail.textContent = t('player.waiting_map');
   };
 
   ws.onmessage = (event) => {
@@ -387,23 +391,23 @@ function connect() {
 
   ws.onclose = (event) => {
     ws = null;
-    statusEl.textContent = 'Getrennt';
+    statusEl.textContent = t('player.disconnected');
     statusEl.className = 'connection-status error';
     if (event.code === 4000) {
-      waitingDetail.textContent = 'Session nicht gefunden. Bitte den DM um einen neuen Link.';
+      waitingDetail.textContent = t('player.session_not_found');
       waitingScreen.style.display = '';
     } else if (event.code === 4001) {
-      waitingDetail.textContent = 'Session beendet.';
+      waitingDetail.textContent = t('player.session_ended');
       waitingScreen.style.display = '';
     } else {
       // Auto-reconnect
-      waitingDetail.textContent = 'Verbindung verloren, verbinde erneut…';
+      waitingDetail.textContent = t('player.reconnecting');
       reconnectTimer = setTimeout(connect, 3000);
     }
   };
 
   ws.onerror = () => {
-    statusEl.textContent = 'Verbindungsfehler';
+    statusEl.textContent = t('player.conn_error');
     statusEl.className = 'connection-status error';
   };
 }
@@ -474,7 +478,7 @@ function loadMapFromData(imageData) {
     waitingScreen.style.display = 'none';
     renderAll();
   };
-  img.onerror = () => { waitingDetail.textContent = 'Karte konnte nicht geladen werden.'; };
+  img.onerror = () => { waitingDetail.textContent = t('player.map_error'); };
   img.src = imageData;
 }
 
@@ -497,7 +501,7 @@ function loadVideoMap(url) {
   }, { once: true });
 
   video.addEventListener('error', () => {
-    waitingDetail.textContent = 'Video konnte nicht geladen werden.';
+    waitingDetail.textContent = t('player.video_error');
   }, { once: true });
 }
 
@@ -525,6 +529,16 @@ function applyTokens(raw) {
       tokenImg: (cached && cached.data === t.tokenData) ? cached.img : null,
     };
   });
+
+  // If a drag is in progress, update dragToken to the new array object and keep drag position
+  if (dragToken) {
+    const updated = newTokens.find(t => t.id === dragToken.id);
+    if (updated) {
+      updated.tokenX = dragToken.tokenX;
+      updated.tokenY = dragToken.tokenY;
+      dragToken = updated;
+    }
+  }
 
   for (const t of newTokens) {
     if (!t.tokenImg && t.tokenData) {
@@ -632,11 +646,27 @@ function onPointerUp() {
   }
 }
 
-// Mouse events
-canvasEvents.addEventListener('mousedown',  e => onPointerDown(e.offsetX, e.offsetY, e.shiftKey, false));
-canvasEvents.addEventListener('mousemove',  e => onPointerMove(e.offsetX, e.offsetY));
-canvasEvents.addEventListener('mouseup',    () => onPointerUp());
-canvasEvents.addEventListener('mouseleave', () => { if (dragToken) onPointerUp(); });
+// Mouse events — use document-level tracking during drag so fast mouse moves outside
+// the canvas don't prematurely end the drag
+function onDocMouseMove(e) {
+  const rect = canvasEvents.getBoundingClientRect();
+  onPointerMove(e.clientX - rect.left, e.clientY - rect.top);
+}
+function onDocMouseUp() {
+  document.removeEventListener('mousemove', onDocMouseMove);
+  document.removeEventListener('mouseup',   onDocMouseUp);
+  onPointerUp();
+}
+
+canvasEvents.addEventListener('mousedown', e => {
+  onPointerDown(e.offsetX, e.offsetY, e.shiftKey, false);
+  if (dragToken) {
+    document.addEventListener('mousemove', onDocMouseMove);
+    document.addEventListener('mouseup',   onDocMouseUp);
+  }
+});
+canvasEvents.addEventListener('mousemove', e => { if (!dragToken) onPointerMove(e.offsetX, e.offsetY); });
+canvasEvents.addEventListener('mouseup',   () => { if (!dragToken) onPointerUp(); });
 
 // Ctrl+click: place a map pin
 canvasEvents.addEventListener('click', (e) => {
@@ -656,7 +686,7 @@ canvasEvents.addEventListener('click', (e) => {
   }
   if (!state.image) return;
   const imgPos = screenToImage(e.offsetX, e.offsetY);
-  const text = prompt('Kommentar (optional):');
+  const text = prompt(t('prompt.comment'));
   if (text !== null) {
     const pin = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2),
@@ -719,5 +749,36 @@ document.addEventListener('fullscreenchange', () => {
 
 // === Start ===
 connect();
+
+// === i18n – Language Switcher + Help Button ===
+(function () {
+  const I18N = window.FREETT_I18N;
+  if (!I18N) return;
+
+  // Sync select to current lang
+  const sel = document.getElementById('lang-select-player');
+  if (sel) {
+    sel.value = I18N.getLang();
+    sel.addEventListener('change', () => {
+      I18N.setLang(sel.value);
+      I18N.applyTranslations();
+    });
+  }
+
+  // Apply translations to static elements
+  I18N.applyTranslations();
+
+  // Help modal
+  const helpBtn    = document.getElementById('btn-help-player');
+  const helpModal  = document.getElementById('help-modal-player');
+  const helpClose  = document.getElementById('help-modal-player-close');
+  const helpClose2 = document.getElementById('help-modal-player-close2');
+  if (helpBtn && helpModal) {
+    helpBtn.addEventListener('click', () => { helpModal.style.display = ''; });
+    [helpClose, helpClose2].forEach(btn => btn && btn.addEventListener('click', () => { helpModal.style.display = 'none'; }));
+    helpModal.querySelector('.help-modal-backdrop').addEventListener('click', () => { helpModal.style.display = 'none'; });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && helpModal.style.display !== 'none') helpModal.style.display = 'none'; });
+  }
+})();
 
 })();

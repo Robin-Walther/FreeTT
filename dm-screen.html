@@ -11,43 +11,50 @@
   <!-- Toolbar -->
   <div id="toolbar">
     <div class="toolbar-left">
-      <span class="app-title">⚔ DM Screen</span>
+      <span class="app-title">⚔ <span data-i18n="app.dm_title">DM Screen</span></span>
     </div>
     <div class="toolbar-center">
-      <button id="btn-tool-reveal" class="btn btn-tool active" data-tool="reveal" title="Nebel aufdecken">
-        <span class="tool-icon">☀</span> Aufdecken
+      <button id="btn-tool-reveal" class="btn btn-tool active" data-tool="reveal" data-i18n-title="tool.reveal.title" title="Nebel aufdecken">
+        <span class="tool-icon">☀</span> <span data-i18n="tool.reveal">Aufdecken</span>
       </button>
-      <button id="btn-tool-hide" class="btn btn-tool" data-tool="hide" title="Nebel verdecken">
-        <span class="tool-icon">🌑</span> Verdecken
+      <button id="btn-tool-hide" class="btn btn-tool" data-tool="hide" data-i18n-title="tool.hide.title" title="Nebel verdecken">
+        <span class="tool-icon">🌑</span> <span data-i18n="tool.hide">Verdecken</span>
       </button>
-      <button id="btn-tool-ruler" class="btn btn-tool" data-tool="ruler" title="Entfernung messen">
-        <span class="tool-icon">📏</span> Lineal
+      <button id="btn-tool-ruler" class="btn btn-tool" data-tool="ruler" data-i18n-title="tool.ruler.title" title="Entfernung messen">
+        <span class="tool-icon">📏</span> <span data-i18n="tool.ruler">Lineal</span>
       </button>
       <div id="ruler-status" class="ruler-status" style="display:none">
         <span id="ruler-status-text"></span>
-        <button id="btn-recalibrate" class="btn btn-secondary">Kalibrieren</button>
+        <button id="btn-recalibrate" class="btn btn-secondary" data-i18n="btn.recalibrate">Kalibrieren</button>
       </div>
       <div class="separator"></div>
-      <label class="label-sm">Pinselgröße</label>
+      <label class="label-sm" data-i18n="label.brush_size">Pinselgröße</label>
       <input id="brush-size" type="range" min="10" max="200" value="60" />
       <span id="brush-size-val">60</span>
       <div class="separator"></div>
-      <button id="btn-reveal-all" class="btn btn-secondary">Alles aufdecken</button>
-      <button id="btn-hide-all" class="btn btn-secondary">Alles verdecken</button>
+      <button id="btn-reveal-all" class="btn btn-secondary" data-i18n="btn.reveal_all">Alles aufdecken</button>
+      <button id="btn-hide-all" class="btn btn-secondary" data-i18n="btn.hide_all">Alles verdecken</button>
       <div class="separator"></div>
-      <button id="btn-ping-players" class="btn btn-secondary" title="Alle Spieler anpingen">&#x1F514; Ping</button>
+      <button id="btn-ping-players" class="btn btn-secondary" data-i18n-title="btn.ping.title" title="Alle Spieler anpingen">&#x1F514; <span data-i18n="btn.ping">Ping</span></button>
     </div>
     <div class="toolbar-right">
-      <button id="btn-save-session" class="btn btn-secondary" title="Session speichern">&#x1F4BE; Speichern</button>
-      <button id="btn-load-session" class="btn btn-secondary" title="Session laden">&#x1F4C2; Laden</button>
+      <button id="btn-save-session" class="btn btn-secondary" data-i18n-title="btn.save.title" title="Session speichern" data-i18n="btn.save">💾 Speichern</button>
+      <button id="btn-load-session" class="btn btn-secondary" data-i18n-title="btn.load.title" title="Session laden" data-i18n="btn.load">📂 Laden</button>
       <div class="separator"></div>
-      <button id="btn-remote-mode" class="btn btn-secondary remote-mode-btn" title="Remote Session verwalten">&#x1F310; Remote</button>
+      <button id="btn-remote-mode" class="btn btn-secondary remote-mode-btn" data-i18n-title="btn.remote.title" title="Remote Session verwalten" data-i18n="btn.remote">&#x1F310; Remote</button>
+      <div class="separator"></div>
+      <select id="lang-select" class="lang-select" title="Language / Sprache">
+        <option value="de">DE</option>
+        <option value="en">EN</option>
+        <option value="fr">FR</option>
+        <option value="it">IT</option>
+      </select>
       <div class="separator"></div>
       <div id="volume-control" class="volume-control">
         <span class="volume-icon" id="volume-icon" title="Stummschalten">&#x1F50A;</span>
-        <input id="volume-slider" type="range" min="0" max="100" value="50" title="Lautstärke" />
+        <input id="volume-slider" type="range" min="0" max="100" value="50" data-i18n-title="mute" title="Lautstärke" />
       </div>
-      <span id="status-text" class="status-text">Kein Bild geladen</span>
+      <span id="status-text" class="status-text" data-i18n="status.no_image">Kein Bild geladen</span>
     </div>
   </div>
 
@@ -57,30 +64,30 @@
     <!-- Image deck sidebar -->
     <div id="image-deck">
       <div id="deck-header">
-        <span>Karten</span>
-        <button id="btn-deck-add" class="btn btn-primary btn-deck-add-btn" title="Karte(n) hinzufügen">+</button>
+        <span data-i18n="section.maps">Karten</span>
+        <button id="btn-deck-add" class="btn btn-primary btn-deck-add-btn" data-i18n-title="btn.add_map.title" title="Karte(n) hinzufügen">+</button>
       </div>
       <div id="deck-list"></div>
 
       <!-- Grid panel -->
       <div id="grid-section">
         <div id="grid-header" class="collapsible-header">
-          <span>Gitter</span>
-          <button id="grid-toggle-btn" class="panel-toggle-btn" title="Ein-/Ausklappen">&#x25BE;</button>
+          <span data-i18n="section.grid">Gitter</span>
+          <button id="grid-toggle-btn" class="panel-toggle-btn" data-i18n-title="grid.toggle.title" title="Ein-/Ausklappen">&#x25BE;</button>
         </div>
         <div id="grid-controls">
           <div class="grid-row">
             <label class="grid-check-label">
               <input type="checkbox" id="grid-visible-cb" />
-              Gitter anzeigen
+              <span data-i18n="grid.show">Gitter anzeigen</span>
             </label>
           </div>
           <div class="grid-row grid-row-labeled">
-            <label class="label-sm">Größe (px)</label>
+            <label class="label-sm" data-i18n="grid.size">Größe (px)</label>
             <input id="grid-size-input" type="number" min="1" value="" placeholder="—" class="grid-number-input" />
           </div>
           <div class="grid-row grid-row-labeled">
-            <label class="label-sm">Versatz X</label>
+            <label class="label-sm" data-i18n="grid.offset_x">Versatz X</label>
             <div class="grid-nudge-group">
               <input id="grid-offset-x-input" type="number" value="0" class="grid-number-input" />
               <button id="grid-nudge-left" class="btn btn-secondary grid-nudge-btn" title="−1 px">←</button>
@@ -88,7 +95,7 @@
             </div>
           </div>
           <div class="grid-row grid-row-labeled">
-            <label class="label-sm">Versatz Y</label>
+            <label class="label-sm" data-i18n="grid.offset_y">Versatz Y</label>
             <div class="grid-nudge-group">
               <input id="grid-offset-y-input" type="number" value="0" class="grid-number-input" />
               <button id="grid-nudge-up" class="btn btn-secondary grid-nudge-btn" title="−1 px">↑</button>
@@ -96,18 +103,18 @@
             </div>
           </div>
           <div class="grid-row grid-row-labeled">
-            <label class="label-sm">Helligkeit</label>
+            <label class="label-sm" data-i18n="grid.brightness">Helligkeit</label>
             <div class="grid-opacity-row">
-              <span class="grid-opacity-label">dunkel</span>
+              <span class="grid-opacity-label" data-i18n="grid.dark">dunkel</span>
               <input id="grid-opacity-slider" type="range" min="3" max="80" value="15" class="grid-opacity-slider" />
-              <span class="grid-opacity-label">hell</span>
+              <span class="grid-opacity-label" data-i18n="grid.light">hell</span>
             </div>
           </div>
           <div class="grid-row grid-row-full">
-            <button id="btn-grid-align" class="btn btn-secondary grid-full-btn">Versatz ziehen</button>
+            <button id="btn-grid-align" class="btn btn-secondary grid-full-btn" data-i18n="btn.grid_align">Versatz ziehen</button>
           </div>
           <div class="grid-row grid-row-full">
-            <button id="btn-calibrate" class="btn btn-secondary grid-full-btn">Kalibrieren</button>
+            <button id="btn-calibrate" class="btn btn-secondary grid-full-btn" data-i18n="btn.grid_calibrate">Kalibrieren</button>
           </div>
         </div>
       </div>
@@ -115,28 +122,28 @@
       <!-- Players panel -->
       <div id="players-section">
         <div id="players-header" class="collapsible-header">
-          <span>Spieler</span>
-          <button id="players-toggle-btn" class="panel-toggle-btn" title="Ein-/Ausklappen">&#x25BE;</button>
+          <span data-i18n="section.players">Spieler</span>
+          <button id="players-toggle-btn" class="panel-toggle-btn" data-i18n-title="players.toggle.title" title="Ein-/Ausklappen">&#x25BE;</button>
         </div>
         <div id="players-controls">
           <div id="players-list"></div>
           <div id="players-add-row" style="display:none">
-            <input id="players-add-input" type="text" placeholder="Name…" autocomplete="off" />
-            <button id="players-add-confirm" class="btn btn-primary btn-icon" title="Hinzufügen">&#x2713;</button>
-            <button id="players-add-cancel" class="btn btn-secondary btn-icon" title="Abbrechen">&#x2715;</button>
+            <input id="players-add-input" type="text" data-i18n-placeholder="placeholder.player_name" placeholder="Name…" autocomplete="off" />
+            <button id="players-add-confirm" class="btn btn-primary btn-icon" data-i18n-title="btn.add_player_confirm.title" title="Hinzufügen">&#x2713;</button>
+            <button id="players-add-cancel" class="btn btn-secondary btn-icon" data-i18n-title="btn.add_player_cancel.title" title="Abbrechen">&#x2715;</button>
           </div>
-          <button id="btn-add-global-player" class="btn btn-secondary players-add-btn">+ Spieler</button>
+          <button id="btn-add-global-player" class="btn btn-secondary players-add-btn" data-i18n="btn.add_player">+ Spieler</button>
         </div>
       </div>
 
       <!-- Music panel -->
       <div id="music-section">
         <div id="music-header">
-          <span>Musik</span>
+          <span data-i18n="section.music">Musik</span>
           <span class="music-note">&#x1F3B5;</span>
         </div>
         <div id="music-search-row">
-          <input id="music-search-input" type="text" placeholder="YouTube suchen…" autocomplete="off" />
+          <input id="music-search-input" type="text" data-i18n-placeholder="placeholder.youtube_search" placeholder="YouTube suchen…" autocomplete="off" />
           <button id="music-search-btn" class="btn btn-primary btn-icon" title="Suchen">&#x1F50D;</button>
         </div>
         <div id="music-results"></div>
@@ -152,9 +159,9 @@
       <div id="drop-zone" class="drop-zone">
         <div class="drop-zone-inner">
           <div class="drop-icon">🗺</div>
-          <p>Karte hier ablegen</p>
-          <p class="drop-sub">oder</p>
-          <button id="btn-load-drop" class="btn btn-primary">Datei auswählen</button>
+          <p data-i18n="drop.title">Karte hier ablegen</p>
+          <p class="drop-sub" data-i18n="drop.or">oder</p>
+          <button id="btn-load-drop" class="btn btn-primary" data-i18n="btn.choose_file">Datei auswählen</button>
         </div>
       </div>
 
@@ -170,33 +177,36 @@
       <canvas id="canvas-ping" class="canvas-layer canvas-ping-layer"></canvas>
       <!-- Brush cursor preview -->
       <canvas id="canvas-cursor" class="canvas-layer canvas-cursor"></canvas>
+
+      <!-- Help button — lower left -->
+      <button id="btn-help-dm" class="help-btn help-btn-dm" title="Help / Hilfe">?</button>
     </div>
 
     <!-- Combat Tracker Sidebar (right) -->
     <div id="combat-deck">
       <div id="combat-header">
-        <span>Initiative</span>
+        <span data-i18n="section.combat">Initiative</span>
       </div>
       <div id="combat-list"></div>
       <div id="combat-footer">
-        <button id="btn-add-monster" class="btn btn-secondary combat-footer-btn" title="Monster hinzufügen">⚔ Monster</button>
-        <button id="btn-add-player" class="btn btn-secondary combat-footer-btn" title="Spieler hinzufügen">🧙 Spieler</button>
+        <button id="btn-add-monster" class="btn btn-secondary combat-footer-btn" data-i18n-title="btn.add_monster" title="Monster hinzufügen" data-i18n="btn.add_monster">⚔ Monster</button>
+        <button id="btn-add-player" class="btn btn-secondary combat-footer-btn" data-i18n-title="btn.add_player_combat" title="Spieler hinzufügen" data-i18n="btn.add_player_combat">🧙 Spieler</button>
       </div>
 
       <!-- Overlay: Kämpfer hinzufügen -->
       <div id="combat-add-overlay" style="display:none">
         <div id="combat-add-type-label"></div>
         <div class="combat-add-field">
-          <label class="label-sm">Name</label>
+          <label class="label-sm" data-i18n="label.name">Name</label>
           <input id="combat-add-name" type="text" placeholder="Name…" autocomplete="off" />
         </div>
         <div id="combat-add-hp-fields" class="combat-add-field" style="display:none">
-          <label class="label-sm">Max HP</label>
+          <label class="label-sm" data-i18n="label.max_hp">Max HP</label>
           <input id="combat-add-maxhp" type="number" min="1" max="9999" value="10" />
         </div>
         <div id="combat-add-actions">
-          <button id="combat-add-confirm" class="btn btn-primary">Hinzufügen</button>
-          <button id="combat-add-cancel" class="btn btn-secondary">Abbrechen</button>
+          <button id="combat-add-confirm" class="btn btn-primary" data-i18n="btn.add_confirm">Hinzufügen</button>
+          <button id="combat-add-cancel" class="btn btn-secondary" data-i18n="btn.cancel">Abbrechen</button>
         </div>
       </div>
     </div>
@@ -207,15 +217,15 @@
   <div id="calibrate-overlay" style="display:none">
     <div class="calibrate-backdrop"></div>
     <div class="calibrate-box">
-      <p>Gemessene Strecke: <strong id="calibrate-px">0</strong> px</p>
+      <p><span data-i18n="calibrate.measured">Gemessene Strecke:</span> <strong id="calibrate-px">0</strong> px</p>
       <label class="calibrate-label">
-        Entspricht
+        <span data-i18n="calibrate.equals">Entspricht</span>
         <input id="calibrate-fields" type="number" value="10" min="1" class="calibrate-fields-input" />
-        Feldern
+        <span data-i18n="calibrate.fields">Feldern</span>
       </label>
       <div class="calibrate-actions">
-        <button id="calibrate-confirm" class="btn btn-primary">Bestätigen</button>
-        <button id="calibrate-cancel" class="btn btn-secondary">Abbrechen</button>
+        <button id="calibrate-confirm" class="btn btn-primary" data-i18n="btn.confirm">Bestätigen</button>
+        <button id="calibrate-cancel" class="btn btn-secondary" data-i18n="btn.cancel">Abbrechen</button>
       </div>
     </div>
   </div>
@@ -223,22 +233,22 @@
   <!-- Remote Session Panel -->
   <div id="remote-panel" style="display:none">
     <div class="remote-panel-header">
-      <span class="remote-panel-title">&#x1F310; Remote Session</span>
+      <span class="remote-panel-title" data-i18n="remote.title">&#x1F310; Remote Session</span>
       <button id="remote-panel-close" class="btn btn-secondary btn-icon" title="Schließen">&#x2715;</button>
     </div>
     <div id="remote-panel-inactive">
-      <p class="remote-panel-hint">Spieler treten über den Browser bei – kein Setup nötig.</p>
-      <button id="btn-start-remote" class="btn btn-primary remote-start-btn">Session starten</button>
+      <p class="remote-panel-hint" data-i18n="remote.hint">Spieler treten über den Browser bei – kein Setup nötig.</p>
+      <button id="btn-start-remote" class="btn btn-primary remote-start-btn" data-i18n="btn.start_remote">Session starten</button>
     </div>
     <div id="remote-panel-active" style="display:none">
       <div class="remote-session-code-row">
-        <span class="remote-code-label">Code</span>
+        <span class="remote-code-label" data-i18n="remote.code">Code</span>
         <span id="remote-session-code" class="remote-session-code"></span>
-        <button id="btn-copy-session-link" class="btn btn-secondary btn-sm" title="Allgemeinen Link kopieren">&#x1F4CB;</button>
+        <button id="btn-copy-session-link" class="btn btn-secondary btn-sm" data-i18n-title="btn.copy_session.title" title="Allgemeinen Link kopieren">&#x1F4CB;</button>
       </div>
-      <div class="remote-player-links-label">Spieler-Links</div>
+      <div class="remote-player-links-label" data-i18n="remote.player_links">Spieler-Links</div>
       <div id="remote-player-links"></div>
-      <button id="btn-end-remote" class="btn btn-secondary remote-end-btn">Session beenden</button>
+      <button id="btn-end-remote" class="btn btn-secondary remote-end-btn" data-i18n="btn.end_remote">Session beenden</button>
     </div>
   </div>
 
@@ -249,7 +259,7 @@
       <button id="token-ctx-close" class="ctx-menu-close-btn" title="Schließen (Esc)">×</button>
     </div>
     <div class="ctx-menu-section">
-      <span class="ctx-menu-label">Tokengröße</span>
+      <span class="ctx-menu-label" data-i18n="token_ctx.size">Tokengröße</span>
       <div class="ctx-menu-row">
         <button id="token-ctx-size-minus" class="btn ctx-menu-btn">−</button>
         <span id="token-ctx-size-val">40</span><span class="ctx-menu-unit"> px</span>
@@ -262,9 +272,51 @@
         <button class="btn ctx-preset-btn" data-size="90">XL</button>
       </div>
     </div>
-    <button id="token-ctx-remove" class="btn ctx-menu-remove-btn">Von Karte entfernen</button>
+    <button id="token-ctx-remove" class="btn ctx-menu-remove-btn" data-i18n="btn.remove_token">Von Karte entfernen</button>
   </div>
 
+  <!-- Help modal – DM Screen -->
+  <div id="help-modal" class="help-modal" style="display:none">
+    <div class="help-modal-backdrop"></div>
+    <div class="help-modal-box">
+      <div class="help-modal-header">
+        <span class="help-modal-title" data-i18n="help.title">Hilfe – Aktionen</span>
+        <button id="help-modal-close" class="btn btn-secondary btn-icon">&#x2715;</button>
+      </div>
+      <div class="help-modal-body">
+        <div class="help-item">
+          <div class="help-item-icon">☀🌑</div>
+          <div><strong data-i18n="help.fog.title">Kriegsnebel</strong><p data-i18n="help.fog.desc">Pinsel zum Aufdecken/Verdecken des Nebels.</p></div>
+        </div>
+        <div class="help-item">
+          <div class="help-item-icon">📏</div>
+          <div><strong data-i18n="help.ruler.title">Lineal</strong><p data-i18n="help.ruler.desc">Lineal-Tool wählen, klicken und ziehen.</p></div>
+        </div>
+        <div class="help-item">
+          <div class="help-item-icon">⊞</div>
+          <div><strong data-i18n="help.grid.title">Gitter</strong><p data-i18n="help.grid.desc">Gitter aktivieren und ausrichten.</p></div>
+        </div>
+        <div class="help-item">
+          <div class="help-item-icon">🧙</div>
+          <div><strong data-i18n="help.tokens.title">Tokens</strong><p data-i18n="help.tokens.desc">Token aus Initiative-Liste auf Karte ziehen.</p></div>
+        </div>
+        <div class="help-item">
+          <div class="help-item-icon">🔔</div>
+          <div><strong data-i18n="help.ping.title">Ping</strong><p data-i18n="help.ping.desc">Ping-Button oder Shift+Klick auf der Karte.</p></div>
+        </div>
+        <div class="help-item">
+          <div class="help-item-icon">📌</div>
+          <div><strong data-i18n="help.pins.title">Kartenmarkierungen</strong><p data-i18n="help.pins.desc">Strg+Klick für Markierung mit Notiz.</p></div>
+        </div>
+        <div class="help-item">
+          <div class="help-item-icon">🌐</div>
+          <div><strong data-i18n="help.remote.title">Remote Session</strong><p data-i18n="help.remote.desc">Remote-Panel öffnen, Session starten, Links teilen.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
   <script src="dm-screen.js"></script>
 </body>
 </html>

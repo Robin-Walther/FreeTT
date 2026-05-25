@@ -5,17 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FreeTT – Player</title>
   <link rel="stylesheet" href="player.css" />
-
 </head>
 <body>
 
   <!-- Minimal header -->
   <div id="player-header">
     <span class="app-title">&#x2694; FreeTT</span>
-    <span id="connection-status" class="connection-status">Verbinde…</span>
-    <button id="ping-btn" title="Ping – DM auf Ort aufmerksam machen (Shift+Klick auf Karte)">&#x1F514;</button>
-    <button id="ruler-btn" title="Lineal ein/aus">&#x1F4CF;</button>
-    <button id="fullscreen-btn" title="Vollbild ein/aus">&#x26F6;</button>
+    <span id="connection-status" class="connection-status" data-i18n="player.waiting.detail">Verbinde…</span>
+    <button id="ping-btn" data-i18n-title="player.ping.title" title="Ping – DM auf Ort aufmerksam machen (Shift+Klick auf Karte)">&#x1F514;</button>
+    <button id="ruler-btn" data-i18n-title="player.ruler.title" title="Lineal ein/aus">&#x1F4CF;</button>
+    <button id="fullscreen-btn" data-i18n-title="player.fullscreen.title" title="Vollbild ein/aus">&#x26F6;</button>
+    <button id="btn-help-player" class="help-btn-player" title="Help">?</button>
+    <select id="lang-select-player" class="lang-select" title="Language">
+      <option value="de">DE</option>
+      <option value="en">EN</option>
+      <option value="fr">FR</option>
+      <option value="it">IT</option>
+    </select>
   </div>
 
   <!-- Canvas area -->
@@ -23,8 +29,8 @@
     <div id="waiting-screen" class="waiting-screen">
       <div class="waiting-inner">
         <div class="waiting-icon">&#x2694;</div>
-        <h2>Warte auf den Dungeon Master…</h2>
-        <p id="waiting-detail">Verbinde mit Session…</p>
+        <h2 data-i18n="player.waiting.title">Warte auf den Dungeon Master…</h2>
+        <p id="waiting-detail" data-i18n="player.waiting.detail">Verbinde mit Session…</p>
       </div>
     </div>
 
@@ -42,6 +48,39 @@
     <canvas id="canvas-events"         class="canvas-layer canvas-events-layer"></canvas>
   </div>
 
+  <!-- Help modal – Player Screen -->
+  <div id="help-modal-player" class="help-modal" style="display:none">
+    <div class="help-modal-backdrop"></div>
+    <div class="help-modal-box">
+      <div class="help-modal-header">
+        <span class="help-modal-title" data-i18n="help.player.title">Hilfe – Aktionen</span>
+        <button id="help-modal-player-close" class="btn-help-close">&#x2715;</button>
+      </div>
+      <div class="help-modal-body">
+        <div class="help-item">
+          <div class="help-item-icon">🧙</div>
+          <div><strong data-i18n="help.move.title">Token bewegen</strong><p data-i18n="help.move.desc">Ihr Token (goldener Ring) klicken und ziehen.</p></div>
+        </div>
+        <div class="help-item">
+          <div class="help-item-icon">📏</div>
+          <div><strong data-i18n="help.player_ruler.title">Lineal</strong><p data-i18n="help.player_ruler.desc">📏 Button klicken, dann auf der Karte ziehen.</p></div>
+        </div>
+        <div class="help-item">
+          <div class="help-item-icon">🔔</div>
+          <div><strong data-i18n="help.player_ping.title">Ping</strong><p data-i18n="help.player_ping.desc">🔔 Ping-Button oder Shift+Klick auf der Karte.</p></div>
+        </div>
+        <div class="help-item">
+          <div class="help-item-icon">📌</div>
+          <div><strong data-i18n="help.player_pins.title">Kartenmarkierungen</strong><p data-i18n="help.player_pins.desc">Strg+Klick für Markierung. Klick zum Entfernen.</p></div>
+        </div>
+      </div>
+      <div class="help-modal-footer">
+        <button id="help-modal-player-close2" class="btn-help-close-main" data-i18n="btn.close">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
   <script src="player.js"></script>
 </body>
 </html>
