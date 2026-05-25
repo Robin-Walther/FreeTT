@@ -8,8 +8,8 @@ let syncMode = 'local'; // 'local' | 'remote'
 let currentSessionId = null;
 let tunnelUrl = null;
 
-// Compress a loaded HTMLImageElement to a JPEG data URL for Firebase storage.
-// Scales down to max 2048px on the longest side to stay well under the 10 MB node limit.
+// Compress a loaded HTMLImageElement to a JPEG data URL for remote transfer.
+// Scales down to max 2048px on the longest side.
 function compressImageForRemote(imgEl) {
   if (!imgEl) return null;
   const MAX  = 2048;
@@ -23,7 +23,7 @@ function compressImageForRemote(imgEl) {
   return cvs.toDataURL('image/jpeg', 0.85);
 }
 
-// Export a token's image as a small PNG data URL (max 256 px) for Firebase storage.
+// Export a token's image as a small PNG data URL (max 256 px) for remote transfer.
 function getTokenDataUrl(c) {
   if (!c.tokenImg) return null;
   const MAX  = 256;
