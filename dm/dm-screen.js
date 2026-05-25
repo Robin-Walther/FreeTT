@@ -1210,6 +1210,7 @@ function copyCombatantToSlot(combatant, targetSlot) {
     tokenY: null,
     tokenSize: combatant.tokenSize ?? 40,
     status: combatant.status ?? '',
+    globalPlayerId: combatant.globalPlayerId ?? null,
   };
   if (copy.tokenPath) {
     const img = new Image();
@@ -1560,6 +1561,7 @@ async function saveSession() {
           tokenY: c.tokenY ?? null,
           tokenSize: c.tokenSize ?? 40,
           status: c.status ?? '',
+          globalPlayerId: c.globalPlayerId ?? null,
         })),
         pins: (slot.pins ?? []).map(p => ({ ...p })),
       });
