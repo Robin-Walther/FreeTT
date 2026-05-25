@@ -6,11 +6,13 @@ const canvasGrid          = document.getElementById('canvas-grid');
 const canvasMonsterTokens = document.getElementById('canvas-monster-tokens');
 const canvasFog           = document.getElementById('canvas-fog');
 const canvasTokens        = document.getElementById('canvas-tokens');
+const canvasPing          = document.getElementById('canvas-ping');
 const ctxImage            = canvasImage.getContext('2d');
 const ctxGrid             = canvasGrid.getContext('2d');
 const ctxMonsterTokens    = canvasMonsterTokens.getContext('2d');
 const ctxFog              = canvasFog.getContext('2d');
 const ctxTokens           = canvasTokens.getContext('2d');
+const ctxPing             = canvasPing.getContext('2d');
 const waitingScreen  = document.getElementById('waiting-screen');
 const container      = document.getElementById('canvas-container');
 const fullscreenBtn     = document.getElementById('fullscreen-btn');
@@ -108,7 +110,7 @@ function drawGrid() {
 function resizeCanvases() {
   const w = container.clientWidth;
   const h = container.clientHeight;
-  [canvasImage, canvasGrid, canvasMonsterTokens, canvasFog, canvasTokens].forEach(c => {
+  [canvasImage, canvasGrid, canvasMonsterTokens, canvasFog, canvasTokens, canvasPing].forEach(c => {
     c.width  = w;
     c.height = h;
   });
@@ -311,12 +313,44 @@ window.electronAPI.onGridUpdate((data) => {
   if (state.image) renderAll();
 });
 
-// Ping from DM → flash overlay
-window.electronAPI.onPingPlayers(() => {
-  const el = document.createElement('div');
-  el.className = 'ping-flash';
-  document.body.appendChild(el);
-  el.addEventListener('animationend', () => el.remove());
+// Ping ring animation (same system as DM screen)
+let pingCircles = [];
+let pingAnimFrameId = null;
+
+function addPingCircle(imgX, imgY, color) {
+  pingCircles.push({ imgX, imgY, color, startTime: Date.now() });
+  if (!pingAnimFrameId) animatePings();
+}
+
+function animatePings() {
+  const now = Date.now();
+  const DURATION = 2000;
+  pingCircles = pingCircles.filter(p => now - p.startTime < DURATION);
+  ctxPing.clearRect(0, 0, canvasPing.width, canvasPing.height);
+  for (const p of pingCircles) {
+    const t  = (now - p.startTime) / DURATION;
+    const cx = p.imgX * state.scale + state.offsetX;
+    const cy = p.imgY * state.scale + state.offsetY;
+    const r  = t * 60;
+    ctxPing.beginPath();
+    ctxPing.arc(cx, cy, r, 0, Math.PI * 2);
+    ctxPing.strokeStyle = p.color;
+    ctxPing.lineWidth = 3;
+    ctxPing.globalAlpha = 1 - t;
+    ctxPing.stroke();
+    ctxPing.globalAlpha = 1;
+  }
+  if (pingCircles.length > 0) {
+    pingAnimFrameId = requestAnimationFrame(animatePings);
+  } else {
+    pingAnimFrameId = null;
+    ctxPing.clearRect(0, 0, canvasPing.width, canvasPing.height);
+  }
+}
+
+// DM ping → show ring at the pinged map location
+window.electronAPI.onPingLocation(({ imgX, imgY, color }) => {
+  addPingCircle(imgX, imgY, color || '#c9a84c');
 });
 
 // Incremental fog brush stroke

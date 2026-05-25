@@ -436,8 +436,8 @@ function handleMessage(msg) {
       break;
     }
     case 'ping':
-      // DM ping → flash overlay
-      showPingFlash();
+      // DM ping → show ring at the pinged map location
+      addPingCircle(msg.imgX, msg.imgY, msg.color || '#c9a84c');
       break;
     case 'player-ping':
       // Another player pinged a location
@@ -460,13 +460,6 @@ function handleMessage(msg) {
       renderAll();
       break;
   }
-}
-
-function showPingFlash() {
-  const el = document.createElement('div');
-  el.className = 'ping-flash';
-  document.body.appendChild(el);
-  el.addEventListener('animationend', () => el.remove());
 }
 
 // === Map / Fog / Token loading ===
@@ -581,27 +574,6 @@ function onPointerDown(sx, sy, shiftKey, ctrlKey) {
     rulerCurrentY = sy;
     return;
   }
-  // Ctrl+click: place a pin
-  if (ctrlKey && state.image) {
-    const imgPos = screenToImage(sx, sy);
-    const text = prompt('Kommentar (optional):');
-    if (text !== null) {
-      const pin = {
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-        playerId: MY_ID,
-        colorHex: MY_COLOR,
-        imgX: imgPos.x,
-        imgY: imgPos.y,
-        text: text.trim(),
-      };
-      pins.push(pin);
-      renderAll();
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'place-pin', pin }));
-      }
-    }
-    return;
-  }
   // Shift+click: player ping at location
   if (shiftKey && state.image) {
     const imgPos = screenToImage(sx, sy);
@@ -610,18 +582,6 @@ function onPointerDown(sx, sy, shiftKey, ctrlKey) {
       ws.send(JSON.stringify({ type: 'player-ping', playerId: MY_ID, imgX: imgPos.x, imgY: imgPos.y, color: MY_COLOR }));
     }
     return;
-  }
-  // Click on own pin → remove it
-  if (!shiftKey && !ctrlKey) {
-    const pin = getPinAtScreen(sx, sy);
-    if (pin && pin.playerId === MY_ID) {
-      pins = pins.filter(p => p.id !== pin.id);
-      renderAll();
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'remove-pin', pinId: pin.id }));
-      }
-      return;
-    }
   }
   if (!MY_ID || !state.image) return;
   const t = getOwnTokenAtScreen(sx, sy);
@@ -673,10 +633,46 @@ function onPointerUp() {
 }
 
 // Mouse events
-canvasEvents.addEventListener('mousedown',  e => onPointerDown(e.offsetX, e.offsetY, e.shiftKey, e.ctrlKey || e.metaKey));
+canvasEvents.addEventListener('mousedown',  e => onPointerDown(e.offsetX, e.offsetY, e.shiftKey, false));
 canvasEvents.addEventListener('mousemove',  e => onPointerMove(e.offsetX, e.offsetY));
 canvasEvents.addEventListener('mouseup',    () => onPointerUp());
 canvasEvents.addEventListener('mouseleave', () => { if (dragToken) onPointerUp(); });
+
+// Ctrl+click: place a map pin
+canvasEvents.addEventListener('click', (e) => {
+  if (!(e.ctrlKey || e.metaKey)) {
+    // Plain click: remove own pin if one was hit (only if not dragging)
+    if (!dragToken) {
+      const pin = getPinAtScreen(e.offsetX, e.offsetY);
+      if (pin && pin.playerId === MY_ID) {
+        pins = pins.filter(p => p.id !== pin.id);
+        renderAll();
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'remove-pin', pinId: pin.id }));
+        }
+      }
+    }
+    return;
+  }
+  if (!state.image) return;
+  const imgPos = screenToImage(e.offsetX, e.offsetY);
+  const text = prompt('Kommentar (optional):');
+  if (text !== null) {
+    const pin = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+      playerId: MY_ID,
+      colorHex: MY_COLOR,
+      imgX: imgPos.x,
+      imgY: imgPos.y,
+      text: text.trim(),
+    };
+    pins.push(pin);
+    renderAll();
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'place-pin', pin }));
+    }
+  }
+});
 
 // Touch events
 function touchCoords(e) {

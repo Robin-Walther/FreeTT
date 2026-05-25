@@ -74,13 +74,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   remotePushVolume: (data) => ipcRenderer.send('remote-push-volume', data),
   onRemoteTokenMoved: (callback) => ipcRenderer.on('remote-token-moved', (_, data) => callback(data)),
 
-  // DM: send ping to all players
-  sendPingPlayers: () => ipcRenderer.send('ping-players'),
+  // DM: send a located ping (imgX, imgY, color) to local player window
+  sendPingLocation: (data) => ipcRenderer.send('ping-location', data),
 
-  // Player (local): listen for DM ping
-  onPingPlayers: (callback) => ipcRenderer.on('ping-players', () => callback()),
+  // Player (local): listen for located ping from DM
+  onPingLocation: (callback) => ipcRenderer.on('ping-location', (_, data) => callback(data)),
 
-  // DM: push ping to remote players via WebSocket
+  // DM: push located ping to remote players via WebSocket
   remotePushPing: (data) => ipcRenderer.send('remote-push-ping', data),
 
   // DM: listen for player-ping events from remote players

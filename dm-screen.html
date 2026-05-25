@@ -244,7 +244,10 @@
 
   <!-- Token context menu (right-click on placed token) -->
   <div id="token-ctx-menu" style="display:none">
-    <div class="ctx-menu-title" id="token-ctx-name"></div>
+    <div class="ctx-menu-header">
+      <div class="ctx-menu-title" id="token-ctx-name"></div>
+      <button id="token-ctx-close" class="ctx-menu-close-btn" title="Schließen (Esc)">×</button>
+    </div>
     <div class="ctx-menu-section">
       <span class="ctx-menu-label">Tokengröße</span>
       <div class="ctx-menu-row">

@@ -530,14 +530,14 @@ ipcMain.on('remote-push-volume', (_, { sessionId, value, muted }) => {
   remoteIpcPush(sessionId, { type: 'volume', value, muted });
 });
 
-// DM → local player ping
-ipcMain.on('ping-players', () => {
-  if (playerWindow) playerWindow.webContents.send('ping-players');
+// DM → local player: located ping with image coords
+ipcMain.on('ping-location', (_, data) => {
+  if (playerWindow) playerWindow.webContents.send('ping-location', data);
 });
 
-// DM → remote players ping
-ipcMain.on('remote-push-ping', (_, { sessionId }) => {
-  remoteIpcPush(sessionId, { type: 'ping' });
+// DM → remote players: located ping with image coords
+ipcMain.on('remote-push-ping', (_, { sessionId, imgX, imgY, color }) => {
+  remoteIpcPush(sessionId, { type: 'ping', imgX, imgY, color });
 });
 
 // DM removes a pin → update cached state + broadcast to remote players

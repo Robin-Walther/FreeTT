@@ -653,6 +653,15 @@ canvasImage.addEventListener('mousedown', (e) => {
     state.panStartY = e.clientY - state.offsetY;
     return;
   }
+  // Shift+left-click: DM ping at this map location
+  if (e.button === 0 && e.shiftKey) {
+    const slot = getActiveSlot();
+    if (slot) {
+      const imgPos = screenToImage(e.offsetX, e.offsetY);
+      sendDMPing(imgPos.x, imgPos.y);
+    }
+    return;
+  }
   if (state.tool === 'grid-align') {
     const slot = getActiveSlot();
     if (slot) {
@@ -788,7 +797,7 @@ canvasImage.addEventListener('mouseleave', () => {
   }
 });
 
-canvasImage.addEventListener('contextmenu', e => e.preventDefault());
+canvasImage.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); });
 
 canvasImage.addEventListener('wheel', (e) => {
   if (!getActiveSlot()) return;
@@ -942,13 +951,9 @@ document.getElementById('token-ctx-remove').addEventListener('click', () => {
     sendTokensSync();
   }
 });
-document.addEventListener('click', (e) => {
-  const menu = document.getElementById('token-ctx-menu');
-  if (menu.style.display !== 'none' && !menu.contains(e.target)) closeTokenContextMenu();
-});
-document.addEventListener('contextmenu', (e) => {
-  const menu = document.getElementById('token-ctx-menu');
-  if (menu.style.display !== 'none' && !menu.contains(e.target)) closeTokenContextMenu();
+document.getElementById('token-ctx-close').addEventListener('click', closeTokenContextMenu);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeTokenContextMenu();
 });
 
 // ===== Token System =====
@@ -1091,13 +1096,6 @@ function animatePings() {
     pingAnimFrameId = null;
     ctxPing.clearRect(0, 0, canvasPing.width, canvasPing.height);
   }
-}
-
-function showDMPingFlash() {
-  const el = document.createElement('div');
-  el.className = 'ping-flash';
-  document.body.appendChild(el);
-  el.addEventListener('animationend', () => el.remove());
 }
 
 // ===== Pin helpers =====
@@ -2185,13 +2183,22 @@ async function endRemoteSession() {
   updateRemotePanel();
 }
 
-// Ping button: DM pings all players
-document.getElementById('btn-ping-players').addEventListener('click', () => {
-  window.electronAPI.sendPingPlayers();
+const DM_PING_COLOR = '#c9a84c';
+
+function sendDMPing(imgX, imgY) {
+  addPingCircle(imgX, imgY, DM_PING_COLOR);
+  window.electronAPI.sendPingLocation({ imgX, imgY, color: DM_PING_COLOR });
   if (syncMode === 'remote' && currentSessionId) {
-    window.electronAPI.remotePushPing({ sessionId: currentSessionId });
+    window.electronAPI.remotePushPing({ sessionId: currentSessionId, imgX, imgY, color: DM_PING_COLOR });
   }
-  showDMPingFlash();
+}
+
+// Ping button: DM pings at center of current map view
+document.getElementById('btn-ping-players').addEventListener('click', () => {
+  const slot = getActiveSlot();
+  if (!slot) return;
+  const centerImg = screenToImage(canvasImage.width / 2, canvasImage.height / 2);
+  sendDMPing(centerImg.x, centerImg.y);
 });
 
 // Listen for token moves from remote players (registered once at startup)
